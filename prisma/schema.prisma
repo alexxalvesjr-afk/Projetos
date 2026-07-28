@@ -1,0 +1,869 @@
+// ---------------------------------------------------------------------------
+// Revend CRM — data model
+//
+// Conventions used throughout:
+//  * Every tenant-owned row carries `organizationId` and is indexed on it.
+//    Repositories are the only layer allowed to build queries, and they always
+//    scope by it — tenancy is never left to the caller.
+//  * Money is stored as integer cents (`*Cents`) to keep arithmetic exact.
+//    Formatting happens once, at the edge, in `lib/format.ts`.
+//  * Derived values (profit, margin, ROAS) are computed in the domain layer so
+//    they can never drift from their inputs.
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================================================
+// Enums
+// ===========================================================================
+
+enum Role {
+  OWNER
+  ADMIN
+  MANAGER
+  SALESPERSON
+  VIEWER
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  PENDING
+  ARCHIVED
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+  CVT
+  AUTOMATED
+  DUAL_CLUTCH
+}
+
+enum FuelType {
+  FLEX
+  GASOLINE
+  ETHANOL
+  DIESEL
+  HYBRID
+  ELECTRIC
+  GNV
+}
+
+enum BodyType {
+  HATCH
+  SEDAN
+  SUV
+  PICKUP
+  COUPE
+  CONVERTIBLE
+  WAGON
+  MINIVAN
+  VAN
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  VISIT_SCHEDULED
+  NEGOTIATION
+  PROPOSAL
+  WON
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE
+  WHATSAPP
+  PHONE
+  WALK_IN
+  INSTAGRAM
+  FACEBOOK
+  GOOGLE_ADS
+  META_ADS
+  REFERRAL
+  MARKETPLACE
+  OTHER
+}
+
+enum LeadTemperature {
+  COLD
+  WARM
+  HOT
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  EMAIL
+  WHATSAPP
+  MEETING
+  STAGE_CHANGE
+  TASK_CREATED
+  TASK_COMPLETED
+  APPOINTMENT
+  PROPOSAL_SENT
+  SYSTEM
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum AppointmentType {
+  VISIT
+  TEST_DRIVE
+  CALL
+  DELIVERY
+  MEETING
+  REMINDER
+  MAINTENANCE
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum PaymentMethod {
+  CASH
+  FINANCING
+  CONSORTIUM
+  TRADE_IN
+  MIXED
+  CARD
+  PIX
+}
+
+enum CampaignChannel {
+  GOOGLE_ADS
+  META_ADS
+  TIKTOK_ADS
+  ORGANIC
+  EMAIL
+  MARKETPLACE
+  OTHER
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum GoalType {
+  ORGANIZATION
+  USER
+}
+
+enum NotificationType {
+  LEAD_ASSIGNED
+  LEAD_STAGE_CHANGED
+  TASK_DUE
+  APPOINTMENT_REMINDER
+  VEHICLE_SOLD
+  GOAL_REACHED
+  STOCK_AGING
+  SYSTEM
+}
+
+enum ExpenseCategory {
+  ACQUISITION
+  RECONDITIONING
+  DOCUMENTATION
+  TRANSPORT
+  MARKETING
+  COMMISSION
+  OVERHEAD
+  OTHER
+}
+
+// ===========================================================================
+// Tenancy & identity
+// ===========================================================================
+
+model Organization {
+  id       String @id @default(cuid())
+  name     String
+  slug     String @unique
+  legalName String?
+  taxId    String?
+
+  email     String?
+  phone     String?
+  whatsapp  String?
+
+  addressLine String?
+  city        String?
+  state       String?
+  postalCode  String?
+  country     String  @default("BR")
+
+  logoUrl     String?
+  brandColor  String  @default("#6D4AFF")
+  currency    String  @default("BRL")
+  locale      String  @default("pt-BR")
+  timezone    String  @default("America/Sao_Paulo")
+
+  instagramUrl String?
+  facebookUrl  String?
+  youtubeUrl   String?
+  tiktokUrl    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]
+  vehicles        Vehicle[]
+  leads           Lead[]
+  tasks           Task[]
+  appointments    Appointment[]
+  sales           Sale[]
+  goals           Goal[]
+  campaigns       Campaign[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  testimonials    Testimonial[]
+  services        Service[]
+  faqs            FaqItem[]
+  pages           SitePage[]
+  websiteSettings WebsiteSettings?
+  expenses        VehicleExpense[]
+  activities      LeadActivity[]
+
+  @@index([slug])
+}
+
+model User {
+  id             String  @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  image         String?
+  phone         String?
+  jobTitle      String?
+
+  role     Role    @default(SALESPERSON)
+  isActive Boolean @default(true)
+
+  /// Percentage of sale price paid to the seller, e.g. 2.5 for 2.5%.
+  commissionRate Float @default(0)
+
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  createdVehicles   Vehicle[]      @relation("VehicleCreatedBy")
+  assignedVehicles  Vehicle[]      @relation("VehicleAssignedTo")
+  assignedLeads     Lead[]         @relation("LeadAssignedTo")
+  activities        LeadActivity[]
+  assignedTasks     Task[]         @relation("TaskAssignedTo")
+  appointments      Appointment[]  @relation("AppointmentAssignedTo")
+  sales             Sale[]         @relation("SaleSeller")
+  goals             Goal[]
+  achievements      Achievement[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+
+  @@index([organizationId])
+  @@index([organizationId, role])
+  @@index([email])
+}
+
+/// OAuth account links. Present so social sign-in can be enabled without a
+/// migration; credentials sign-in does not populate this table.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ===========================================================================
+// Inventory
+// ===========================================================================
+
+model Vehicle {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Stable, SEO-friendly identifier used by the public storefront.
+  slug String
+
+  brand   String
+  model   String
+  version String?
+
+  /// Manufacture year / model year, e.g. 2023/2024.
+  year      Int
+  modelYear Int?
+
+  mileage      Int          @default(0)
+  transmission Transmission @default(MANUAL)
+  fuel         FuelType     @default(FLEX)
+  bodyType     BodyType?
+  color        String
+  doors        Int?
+  engine       String?
+  plate        String?
+  vin          String?
+
+  description String?  @db.Text
+  accessories String[] @default([])
+
+  /// What the dealership paid for the unit.
+  costCents Int @default(0)
+  /// Floor price — the lowest a salesperson may close at.
+  minPriceCents Int @default(0)
+  /// Sticker price shown on the storefront.
+  priceCents Int @default(0)
+
+  status    VehicleStatus @default(AVAILABLE)
+  featured  Boolean       @default(false)
+  published Boolean       @default(true)
+
+  purchasedAt DateTime @default(now())
+  soldAt      DateTime?
+  viewCount   Int      @default(0)
+
+  createdById  String?
+  createdBy    User?   @relation("VehicleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  assignedToId String?
+  assignedTo   User?   @relation("VehicleAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  images       VehicleImage[]
+  expenses     VehicleExpense[]
+  leads        Lead[]
+  appointments Appointment[]
+  tasks        Task[]
+  sale         Sale?
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, status])
+  @@index([organizationId, brand])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, published, status])
+  @@index([assignedToId])
+}
+
+model VehicleImage {
+  id        String  @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  url      String
+  /// UploadThing file key, retained so deletes can reclaim remote storage.
+  fileKey  String?
+  alt      String?
+  position Int     @default(0)
+  isCover  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([vehicleId, position])
+}
+
+/// Costs incurred after acquisition. Real profit subtracts these too.
+model VehicleExpense {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicleId      String
+  vehicle        Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  description String
+  category    ExpenseCategory @default(RECONDITIONING)
+  amountCents Int
+  incurredAt  DateTime        @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([vehicleId])
+}
+
+// ===========================================================================
+// CRM
+// ===========================================================================
+
+model Lead {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name  String
+  email String?
+  phone String?
+
+  source      LeadSource      @default(WEBSITE)
+  stage       LeadStage       @default(NEW)
+  temperature LeadTemperature @default(WARM)
+
+  /// 0–100 heuristic freshness/engagement score, recomputed on interaction.
+  score Int @default(50)
+
+  /// Manual ordering inside a Kanban column.
+  position Int @default(0)
+
+  budgetCents Int?
+  notes       String? @db.Text
+
+  tradeInDescription String?
+  tradeInValueCents  Int?
+
+  interestVehicleId String?
+  interestVehicle   Vehicle? @relation(fields: [interestVehicleId], references: [id], onDelete: SetNull)
+
+  assignedToId String?
+  assignedTo   User?   @relation("LeadAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  lastContactAt  DateTime?
+  nextFollowUpAt DateTime?
+  wonAt          DateTime?
+  lostAt         DateTime?
+  lostReason     String?
+
+  /// Attribution captured at first touch.
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  campaignId  String?
+  campaign    Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activities   LeadActivity[]
+  tasks        Task[]
+  appointments Appointment[]
+  sale         Sale?
+
+  @@index([organizationId, stage])
+  @@index([organizationId, assignedToId])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, stage, position])
+  @@index([campaignId])
+}
+
+model LeadActivity {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  type    ActivityType
+  content String?      @db.Text
+  /// Structured payload, e.g. `{ "from": "NEW", "to": "CONTACTED" }`.
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+  @@index([organizationId, createdAt])
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?      @db.Text
+  priority    TaskPriority @default(MEDIUM)
+
+  dueAt       DateTime?
+  completedAt DateTime?
+
+  assignedToId String?
+  assignedTo   User?   @relation("TaskAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  vehicleId String?
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, completedAt])
+  @@index([organizationId, assignedToId, dueAt])
+  @@index([leadId])
+}
+
+// ===========================================================================
+// Agenda
+// ===========================================================================
+
+model Appointment {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  title    String
+  type     AppointmentType   @default(VISIT)
+  status   AppointmentStatus @default(SCHEDULED)
+  startsAt DateTime
+  endsAt   DateTime
+  location String?
+  notes    String?  @db.Text
+
+  /// Set once the event is mirrored into Google Calendar.
+  googleEventId String?
+
+  assignedToId String?
+  assignedTo   User?   @relation("AppointmentAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  vehicleId String?
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, startsAt])
+  @@index([organizationId, assignedToId, startsAt])
+}
+
+// ===========================================================================
+// Sales & targets
+// ===========================================================================
+
+model Sale {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  vehicleId String  @unique
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  leadId String? @unique
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  sellerId String?
+  seller   User?   @relation("SaleSeller", fields: [sellerId], references: [id], onDelete: SetNull)
+
+  salePriceCents  Int
+  /// Snapshot of total cost at closing time, so historic margin never shifts.
+  costCents       Int
+  discountCents   Int @default(0)
+  commissionCents Int @default(0)
+
+  paymentMethod PaymentMethod @default(FINANCING)
+
+  customerName     String
+  customerEmail    String?
+  customerPhone    String?
+  customerDocument String?
+
+  notes  String?  @db.Text
+  soldAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, soldAt])
+  @@index([organizationId, sellerId, soldAt])
+}
+
+model Goal {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  type GoalType @default(ORGANIZATION)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// First day of the target month, normalised to UTC midnight.
+  period DateTime
+
+  targetRevenueCents Int @default(0)
+  targetProfitCents  Int @default(0)
+  targetUnits        Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, userId, period])
+  @@index([organizationId, period])
+}
+
+model Achievement {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Stable identifier, e.g. `first_sale`, `goal_streak_3`.
+  key      String
+  label    String
+  tier     String   @default("bronze")
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, key])
+  @@index([userId])
+}
+
+// ===========================================================================
+// Marketing
+// ===========================================================================
+
+model Campaign {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name    String
+  channel CampaignChannel @default(GOOGLE_ADS)
+  status  CampaignStatus  @default(ACTIVE)
+
+  startDate DateTime
+  endDate   DateTime?
+
+  budgetCents Int @default(0)
+
+  /// External identifier from the ad platform, used when syncing.
+  externalId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  metrics CampaignMetric[]
+  leads   Lead[]
+
+  @@index([organizationId, channel])
+  @@index([organizationId, status])
+}
+
+/// One row per campaign per day — the grain every marketing chart reads from.
+model CampaignMetric {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  date        DateTime
+  spendCents  Int      @default(0)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  leads       Int      @default(0)
+  sales       Int      @default(0)
+  revenueCents Int     @default(0)
+
+  @@unique([campaignId, date])
+  @@index([campaignId, date])
+}
+
+// ===========================================================================
+// Platform services
+// ===========================================================================
+
+model Notification {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type  NotificationType @default(SYSTEM)
+  title String
+  body  String?
+  link  String?
+  read  Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  /// Verb in `entity.action` form, e.g. `vehicle.update`.
+  action   String
+  entity   String
+  entityId String?
+
+  /// Redacted snapshots — secrets are stripped before they reach this table.
+  before Json?
+  after  Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, entity, entityId])
+  @@index([userId])
+}
+
+// ===========================================================================
+// Website CMS
+// ===========================================================================
+
+model WebsiteSettings {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  heroHeadline    String  @default("Encontre o carro certo, sem complicação.")
+  heroSubheadline String  @default("Seminovos revisados, procedência garantida e negociação transparente.")
+  heroImageUrl    String?
+  heroCtaLabel    String  @default("Ver estoque")
+
+  aboutTitle String  @default("Sobre nós")
+  aboutBody  String? @db.Text
+
+  showTestimonials Boolean @default(true)
+  showServices     Boolean @default(true)
+  showFaq          Boolean @default(true)
+
+  metaTitle       String?
+  metaDescription String?
+  ogImageUrl      String?
+
+  /// Public toggle — flipping this takes the storefront offline instantly.
+  published Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  authorName String
+  authorRole String?
+  avatarUrl  String?
+  content    String  @db.Text
+  rating     Int     @default(5)
+  position   Int     @default(0)
+  published  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, published, position])
+}
+
+model Service {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String  @db.Text
+  /// Lucide icon name, resolved through an allow-list at render time.
+  icon        String  @default("Sparkles")
+  position    Int     @default(0)
+  published   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, published, position])
+}
+
+model FaqItem {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  question  String
+  answer    String  @db.Text
+  position  Int     @default(0)
+  published Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, published, position])
+}
+
+model SitePage {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  slug     String
+  title    String
+  content  String? @db.Text
+  seoTitle String?
+  seoDescription String?
+  published Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, published])
+}
