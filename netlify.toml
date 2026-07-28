@@ -1,15 +1,13 @@
 [build]
   command = "npm run build"
-  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
-  # O Prisma precisa gerar o client antes do build do Next (já coberto pelo
-  # script `build`), e o Netlify precisa ignorar o download do Chromium.
-  PRISMA_CLI_BINARY_TARGETS = "native"
 
 # O runtime oficial do Next.js no Netlify. Cuida de SSR, rotas dinâmicas,
-# middleware, ISR e otimização de imagens.
+# middleware, ISR e otimização de imagens — inclusive o diretório de
+# publicação, que não deve ser definido manualmente (nem aqui nem no painel)
+# quando este plugin está ativo.
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
