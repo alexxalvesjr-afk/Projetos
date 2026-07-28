@@ -352,6 +352,49 @@
   }
 }
 
+/* Print: the "Export PDF" path renders this page through the browser's own
+   print pipeline, so the stylesheet has to drop app chrome and force a light
+   surface regardless of the on-screen theme. */
+@media print {
+  :root,
+  .dark {
+    --background: white;
+    --foreground: black;
+    --card: white;
+    --card-foreground: black;
+    --muted-foreground: oklch(0.42 0 0);
+    --border: oklch(0.85 0 0);
+  }
+
+  aside,
+  header,
+  nav,
+  [data-slot="card-action"],
+  .print\:hidden {
+    display: none !important;
+  }
+
+  main {
+    overflow: visible !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  [data-slot="card"] {
+    border-color: oklch(0.85 0 0) !important;
+    box-shadow: none !important;
+    /* Never split a metric card across a page boundary. */
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
+
 /* Respect users who ask for less motion — non-negotiable. */
 @media (prefers-reduced-motion: reduce) {
   *,
