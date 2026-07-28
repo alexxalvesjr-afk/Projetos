@@ -165,6 +165,19 @@ export const ROLE_ORDER: Role[] = [
   "VIEWER",
 ];
 
+/**
+ * Roles that can be granted through the UI. OWNER is excluded: it is created
+ * once at sign-up and transferring it is a deliberate, separate operation.
+ */
+export type AssignableRole = Exclude<Role, "OWNER">;
+
+export const ASSIGNABLE_ROLES: AssignableRole[] = [
+  "ADMIN",
+  "MANAGER",
+  "SALESPERSON",
+  "VIEWER",
+];
+
 export const ROLE_LABELS: Record<Role, string> = {
   OWNER: "Proprietário",
   ADMIN: "Administrador",
