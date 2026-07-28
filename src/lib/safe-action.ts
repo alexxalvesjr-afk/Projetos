@@ -38,6 +38,15 @@ type ActionContext = {
   user: SessionUser;
 };
 
+/** Pulls the audited row id off a handler result, when it exposes one. */
+function extractEntityId(result: unknown): string | null {
+  if (result && typeof result === "object" && "id" in result) {
+    const id = (result as { id: unknown }).id;
+    if (typeof id === "string") return id;
+  }
+  return null;
+}
+
 type ActionConfig<TSchema extends z.ZodTypeAny, TResult> = {
   /** Zod schema validating the raw client input. */
   input?: TSchema;
@@ -46,13 +55,18 @@ type ActionConfig<TSchema extends z.ZodTypeAny, TResult> = {
   /** Rate-limit preset key; defaults to `mutation`. */
   rateLimit?: keyof typeof RATE_LIMITS | false;
   /**
-   * When set, a successful run writes an audit entry. `entityId` receives the
-   * action result so the log can point at the row that was created.
+   * When set, a successful run writes an audit entry.
+   *
+   * The audited row's id is read off the handler's result rather than supplied
+   * by a callback. A callback here would be context-sensitive, so TypeScript
+   * would defer it to the same inference pass as `handler` and end up with no
+   * candidate for `TResult` at all — collapsing every action's result type to
+   * `unknown`. Deriving the id keeps inference clean and removes the boilerplate
+   * from ~30 call sites, since every action already returns an `id`.
    */
   audit?: {
     action: string;
     entity: string;
-    entityId?: (result: TResult) => string | null | undefined;
   };
   handler: (args: {
     input: z.infer<TSchema>;
@@ -107,7 +121,7 @@ export function createAction<TSchema extends z.ZodTypeAny, TResult>(
           userId: user.id,
           action: config.audit.action,
           entity: config.audit.entity,
-          entityId: config.audit.entityId?.(data) ?? null,
+          entityId: extractEntityId(data),
           after: data,
         });
       }
