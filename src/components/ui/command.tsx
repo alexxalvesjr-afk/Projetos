@@ -28,11 +28,14 @@ function CommandDialog({
   open,
   onOpenChange,
   label = "Busca global",
+  shouldFilter = true,
 }: {
   children: React.ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   label?: string;
+  /** Set false when results are already ranked by the server. */
+  shouldFilter?: boolean;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -43,7 +46,7 @@ function CommandDialog({
         {/* Radix requires an accessible title even when it is visually hidden. */}
         <DialogTitle className="sr-only">{label}</DialogTitle>
         <Command
-          // Score against a normalised haystack so accents never break matching.
+          shouldFilter={shouldFilter}
           className="[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide"
         >
           {children}

@@ -24,7 +24,12 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
+/**
+ * `next-auth/jwt` is only a re-export of `@auth/core/jwt`, so augmenting that
+ * specifier would declare a new module rather than merge into the real `JWT`
+ * interface — leaving every claim typed as `unknown`. Augment the source.
+ */
+declare module "@auth/core/jwt" {
   interface JWT {
     id: string;
     role: Role;

@@ -306,7 +306,7 @@ async function main() {
         priceCents: price,
         status,
         featured: i < 4,
-        published: status !== "ARCHIVED",
+        published: true,
         purchasedAt,
         soldAt: isSold ? daysAgo(randomInt(1, 220)) : null,
         viewCount: randomInt(12, 940),
