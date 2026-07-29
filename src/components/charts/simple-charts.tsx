@@ -14,7 +14,12 @@ import {
   YAxis,
 } from "recharts";
 
-import { formatCompact, formatCurrencyShort, formatPercent } from "@/lib/format";
+import {
+  formatCompact,
+  formatCurrencyShort,
+  formatNumber,
+  formatPercent,
+} from "@/lib/format";
 import { percent } from "@/lib/utils";
 import {
   AXIS_PROPS,
@@ -27,6 +32,26 @@ import {
 } from "@/components/charts/chart-primitives";
 
 /**
+ * How a chart renders its numbers.
+ *
+ * Deliberately a string rather than a formatter callback: these are client
+ * components and every caller is a server component, and React cannot
+ * serialise a function across that boundary — `format={(v) => …}` throws at
+ * request time and takes the whole page down with it. A key survives the
+ * boundary; the lookup happens here, on the client.
+ *
+ * `currency` expects integer cents, matching how money is stored everywhere.
+ */
+type ValueFormat = "compact" | "number" | "currency" | "percent";
+
+const FORMATTERS: Record<ValueFormat, (value: number) => string> = {
+  compact: (value) => formatCompact(value),
+  number: (value) => formatNumber(value),
+  currency: (value) => formatCurrencyShort(value),
+  percent: (value) => formatPercent(value, { digits: 1 }),
+};
+
+/**
  * Horizontal bars for ranked categories. Horizontal because category labels are
  * words — rotating them 45° to fit a vertical axis is what makes most dashboard
  * bar charts unreadable.
@@ -34,16 +59,18 @@ import {
 export function RankedBarChart({
   data,
   valueLabel = "Valor",
-  format = (value: number) => formatCompact(value),
+  format = "compact",
   height = 280,
   color = "var(--chart-1)",
 }: {
   data: { label: string; value: number }[];
   valueLabel?: string;
-  format?: (value: number) => string;
+  format?: ValueFormat;
   height?: number;
   color?: string;
 }) {
+  const formatValue = FORMATTERS[format];
+
   if (data.length === 0) return <ChartEmpty height={height} />;
 
   return (
@@ -55,7 +82,7 @@ export function RankedBarChart({
         barCategoryGap={8}
       >
         <CartesianGrid {...GRID_PROPS} horizontal={false} vertical />
-        <XAxis type="number" {...AXIS_PROPS} tickFormatter={format} />
+        <XAxis type="number" {...AXIS_PROPS} tickFormatter={formatValue} />
         <YAxis
           type="category"
           dataKey="label"
@@ -72,7 +99,7 @@ export function RankedBarChart({
               label={label as string | undefined}
               rows={(items) => {
                 const value = Number(items[0]?.value ?? 0);
-                return [{ label: valueLabel, value: format(value), color }];
+                return [{ label: valueLabel, value: formatValue(value), color }];
               }}
             />
           )}
@@ -91,12 +118,14 @@ export function RankedBarChart({
 export function CompositionChart({
   data,
   height = 260,
-  format = (value: number) => formatCompact(value),
+  format = "compact",
 }: {
   data: { label: string; value: number }[];
   height?: number;
-  format?: (value: number) => string;
+  format?: ValueFormat;
 }) {
+  const formatValue = FORMATTERS[format];
+
   const slices = React.useMemo(() => {
     const sorted = [...data].sort((a, b) => b.value - a.value);
     if (sorted.length <= 6) return sorted;
@@ -147,7 +176,7 @@ export function CompositionChart({
                   return [
                     {
                       label: String(item.name ?? ""),
-                      value: `${format(value)} · ${formatPercent(percent(value, total), { digits: 0 })}`,
+                      value: `${formatValue(value)} · ${formatPercent(percent(value, total), { digits: 0 })}`,
                       color: item.payload?.fill as string | undefined,
                     },
                   ];

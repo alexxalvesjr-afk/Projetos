@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 
@@ -26,13 +24,9 @@ export default function AuthLayout({
       </div>
 
       <div className="relative w-full max-w-sm">
-        <Link
-          href="/"
-          className="mx-auto mb-10 flex w-fit"
-          aria-label="Mypremium"
-        >
-          <Logo />
-        </Link>
+        {/* Not a link: the root redirects straight back here, so there is
+            nowhere for it to go. */}
+        <Logo className="mx-auto mb-10 w-fit" />
 
         {children}
       </div>

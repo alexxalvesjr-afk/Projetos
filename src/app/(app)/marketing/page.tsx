@@ -119,21 +119,21 @@ async function Marketing() {
           index={0}
           label="Investimento no mês"
           value={formatCurrencyShort(summary.spendCents)}
-          icon={Banknote}
+          icon={<Banknote />}
           accent="warning"
         />
         <StatCard
           index={1}
           label="Receita atribuída"
           value={formatCurrencyShort(summary.revenueCents)}
-          icon={TrendingUp}
+          icon={<TrendingUp />}
           accent="success"
         />
         <StatCard
           index={2}
           label="ROAS"
           value={`${summary.roas.toFixed(2)}×`}
-          icon={Target}
+          icon={<Target />}
           hint="Receita atribuída dividida pelo investimento."
           footer={
             <p className="text-muted-foreground text-xs">
@@ -145,7 +145,7 @@ async function Marketing() {
           index={3}
           label="Custo por lead"
           value={formatCurrencyShort(summary.costPerLeadCents)}
-          icon={UserPlus}
+          icon={<UserPlus />}
           accent="info"
           // Cheaper is better here, so the trend colour has to be inverted.
           invertTrend
@@ -159,7 +159,7 @@ async function Marketing() {
           index={4}
           label="Custo por venda"
           value={formatCurrencyShort(summary.costPerSaleCents)}
-          icon={Percent}
+          icon={<Percent />}
           accent="info"
           invertTrend
           footer={
@@ -172,7 +172,7 @@ async function Marketing() {
           index={5}
           label="CTR médio"
           value={formatPercent(summary.ctr, { digits: 2 })}
-          icon={MousePointerClick}
+          icon={<MousePointerClick />}
           footer={
             <p className="text-muted-foreground text-xs">
               {formatCompact(summary.impressions)} impressões ·{" "}
@@ -266,7 +266,7 @@ async function Marketing() {
                 label,
                 value,
               }))}
-              format={(value) => formatCurrencyShort(value)}
+              format="currency"
             />
           </CardContent>
         </Card>

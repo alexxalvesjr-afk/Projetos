@@ -175,6 +175,15 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("Mypremium@2026", 12);
 
+  // The platform administrator signs in with their own credentials, so it is
+  // hashed separately from the shared demo-team password below. Overridable by
+  // environment so a real password never has to be committed.
+  const adminEmail = (process.env.ADMIN_EMAIL ?? "alexxalvesjr@gmail.com")
+    .toLowerCase()
+    .trim();
+  const adminPassword = process.env.ADMIN_PASSWORD ?? "12345678";
+  const adminPasswordHash = await bcrypt.hash(adminPassword, 12);
+
   const organization = await db.organization.create({
     data: {
       name: "Mypremium Motors",
@@ -246,6 +255,19 @@ async function main() {
       }),
     );
   }
+
+  // Kept out of `team` on purpose: it owns the account rather than working the
+  // floor, so it must never be picked up as a seller or lead assignee below.
+  await db.user.create({
+    data: {
+      organizationId: organization.id,
+      name: "Alex Alves",
+      email: adminEmail,
+      passwordHash: adminPasswordHash,
+      role: "OWNER",
+      jobTitle: "Administrador",
+    },
+  });
 
   const sellers = team.filter((u) => u.role === "SALESPERSON");
   const manager = team.find((u) => u.role === "MANAGER")!;
@@ -767,7 +789,9 @@ async function main() {
 
   console.log("   ✓ site, notificações e auditoria");
   console.log("\n✅  Seed concluído.\n");
-  console.log("    Acesse com qualquer um destes usuários (senha: Mypremium@2026):");
+  console.log(`    Administrador: ${adminEmail} (senha: ${adminPassword})`);
+  console.log("");
+  console.log("    Equipe de demonstração (senha: Mypremium@2026):");
   for (const spec of teamSpec) {
     console.log(`      ${spec.role.padEnd(12)} ${spec.email}`);
   }

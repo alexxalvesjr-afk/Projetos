@@ -89,7 +89,7 @@ async function DashboardContent() {
           label="Faturamento no mês"
           value={formatCurrencyShort(sales.revenueCents)}
           delta={delta(sales.revenueCents, salesPrevious.revenueCents)}
-          icon={CircleDollarSign}
+          icon={<CircleDollarSign />}
           hint="Soma das vendas fechadas no mês corrente."
         />
 
@@ -99,7 +99,7 @@ async function DashboardContent() {
             label="Lucro no mês"
             value={formatCurrencyShort(sales.profitCents)}
             delta={delta(sales.profitCents, salesPrevious.profitCents)}
-            icon={TrendingUp}
+            icon={<TrendingUp />}
             accent="success"
             hint="Faturamento menos custo de aquisição e preparação."
             footer={
@@ -117,7 +117,7 @@ async function DashboardContent() {
               sales.averageTicketCents,
               salesPrevious.averageTicketCents,
             )}
-            icon={BadgeDollarSign}
+            icon={<BadgeDollarSign />}
             accent="success"
           />
         )}
@@ -127,7 +127,7 @@ async function DashboardContent() {
           label="Veículos vendidos"
           value={sales.unitsSold}
           delta={delta(sales.unitsSold, salesPrevious.unitsSold)}
-          icon={Car}
+          icon={<Car />}
           accent="info"
         />
 
@@ -135,7 +135,7 @@ async function DashboardContent() {
           index={3}
           label="Veículos em estoque"
           value={stock.inStock}
-          icon={Gauge}
+          icon={<Gauge />}
           accent="warning"
           hint="Disponíveis e reservados."
           footer={
@@ -152,7 +152,7 @@ async function DashboardContent() {
           label="Leads no mês"
           value={leads.created}
           delta={delta(leads.created, leadsPrevious.created)}
-          icon={UserPlus}
+          icon={<UserPlus />}
         />
 
         <StatCard
@@ -160,7 +160,7 @@ async function DashboardContent() {
           label="Taxa de conversão"
           value={formatPercent(leads.conversionRate)}
           delta={delta(leads.conversionRate, leadsPrevious.conversionRate)}
-          icon={Users}
+          icon={<Users />}
           accent="success"
           hint="Leads ganhos sobre leads criados no período."
         />
@@ -173,7 +173,7 @@ async function DashboardContent() {
             sales.averageTicketCents,
             salesPrevious.averageTicketCents,
           )}
-          icon={Banknote}
+          icon={<Banknote />}
           accent="info"
         />
 
@@ -181,7 +181,7 @@ async function DashboardContent() {
           index={7}
           label="Pipeline aberto"
           value={formatCompact(leads.open)}
-          icon={ClipboardList}
+          icon={<ClipboardList />}
           accent="warning"
           hint="Leads ativos em qualquer etapa antes de ganho/perdido."
           footer={

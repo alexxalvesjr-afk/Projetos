@@ -25,6 +25,16 @@ npm run db:seed
 npm run dev                 # http://localhost:3000
 ```
 
+### Administrator
+
+The seed also creates the platform administrator, `alexxalvesjr@gmail.com`,
+with the `OWNER` role. `ADMIN_EMAIL` / `ADMIN_PASSWORD` override the defaults so
+a real password never has to be committed.
+
+To create or reset that account against a database that already holds real
+data, run `npm run db:admin` — it is idempotent and touches nothing else, while
+`db:seed` deletes every organization to rebuild the demo from scratch.
+
 ### Demo accounts
 
 The seed creates a fully populated dealership (34 vehicles, 72 leads, 12 sales,
@@ -156,7 +166,8 @@ npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
 npm run db:push      # sync schema without a migration
 npm run db:migrate   # create a migration
-npm run db:seed      # load the demo dealership
+npm run db:seed      # load the demo dealership (wipes existing data)
+npm run db:admin     # create/reset the administrator, leaving all other data
 npm run db:studio    # Prisma Studio
 ```
 

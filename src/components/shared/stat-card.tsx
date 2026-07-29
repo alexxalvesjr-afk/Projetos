@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { ArrowDownRight, ArrowUpRight, Minus, type LucideIcon } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { formatDelta } from "@/lib/format";
@@ -21,13 +21,20 @@ function trendOf(delta: number | null): Trend {
  *
  * `invertTrend` matters: for cost-like metrics (cost per lead, days in stock) a
  * decrease is the good outcome, so the colour must not blindly follow the sign.
+ *
+ * `icon` takes a rendered element (`<Car />`), never the component itself. This
+ * is a client component and every caller is a server component: React cannot
+ * serialise a function across that boundary, and passing `icon={Car}` throws at
+ * request time — which a type check and a build both miss, because the tile
+ * only breaks once the page actually renders. Sizing is applied through a
+ * descendant selector so call sites stay free of layout concerns.
  */
 function StatCard({
   label,
   value,
   delta = null,
   deltaLabel = "vs. mês anterior",
-  icon: Icon,
+  icon,
   accent = "primary",
   invertTrend = false,
   hint,
@@ -39,7 +46,7 @@ function StatCard({
   value: React.ReactNode;
   delta?: number | null;
   deltaLabel?: string;
-  icon?: LucideIcon;
+  icon?: React.ReactNode;
   accent?: "primary" | "success" | "warning" | "info" | "destructive";
   invertTrend?: boolean;
   hint?: string;
@@ -115,14 +122,14 @@ function StatCard({
             ) : null}
           </div>
 
-          {Icon ? (
+          {icon ? (
             <div
               className={cn(
-                "flex size-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105",
+                "flex size-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105 [&_svg]:size-4.5",
                 accentClasses,
               )}
             >
-              <Icon className="size-4.5" strokeWidth={2} />
+              {icon}
             </div>
           ) : null}
         </div>

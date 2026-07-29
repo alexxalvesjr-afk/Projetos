@@ -9,9 +9,10 @@ const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
  * next crawl and a sold one drops out of the index automatically.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const entries: MetadataRoute.Sitemap = [
-    { url: BASE, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-  ];
+  // The root now redirects to the sign-in screen, so it is deliberately absent:
+  // listing a URL that 307s to a private page only wastes crawl budget. Only
+  // the public storefronts belong in here.
+  const entries: MetadataRoute.Sitemap = [];
 
   try {
     const stores = await db.organization.findMany({

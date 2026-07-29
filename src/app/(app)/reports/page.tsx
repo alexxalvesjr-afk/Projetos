@@ -12,11 +12,7 @@ import {
 import { requirePermission } from "@/lib/session";
 import { hasPermission } from "@/lib/rbac";
 import { delta } from "@/lib/utils";
-import {
-  formatCurrencyShort,
-  formatNumber,
-  formatPercent,
-} from "@/lib/format";
+import { formatCurrencyShort, formatPercent } from "@/lib/format";
 import { AGING_BANDS, type AgingBand } from "@/lib/domain/vehicle";
 import { LEAD_SOURCE_LABELS, PIPELINE_STAGES } from "@/lib/domain/lead";
 import {
@@ -97,14 +93,14 @@ async function Reports() {
           label="Faturamento"
           value={formatCurrencyShort(sales.revenueCents)}
           delta={delta(sales.revenueCents, salesPrevious.revenueCents)}
-          icon={CircleDollarSign}
+          icon={<CircleDollarSign />}
         />
         <StatCard
           index={1}
           label="Lucro bruto"
           value={formatCurrencyShort(sales.profitCents)}
           delta={delta(sales.profitCents, salesPrevious.profitCents)}
-          icon={TrendingUp}
+          icon={<TrendingUp />}
           accent="success"
           footer={
             <p className="text-muted-foreground text-xs">
@@ -116,7 +112,7 @@ async function Reports() {
           index={2}
           label="ROI sobre estoque vendido"
           value={formatPercent(roi)}
-          icon={Percent}
+          icon={<Percent />}
           accent="info"
           hint="Lucro dividido pelo custo total das unidades vendidas."
         />
@@ -125,13 +121,13 @@ async function Reports() {
           label="Ticket médio"
           value={formatCurrencyShort(sales.averageTicketCents)}
           delta={delta(sales.averageTicketCents, salesPrevious.averageTicketCents)}
-          icon={BadgeDollarSign}
+          icon={<BadgeDollarSign />}
         />
         <StatCard
           index={4}
           label="Taxa de conversão"
           value={formatPercent(leads.conversionRate)}
-          icon={Users}
+          icon={<Users />}
           accent="success"
           footer={
             <p className="text-muted-foreground text-xs">
@@ -143,7 +139,7 @@ async function Reports() {
           index={5}
           label="Capital em estoque"
           value={formatCurrencyShort(stock.investedCents)}
-          icon={Package}
+          icon={<Package />}
           accent="warning"
           footer={
             <p className="text-muted-foreground text-xs">
@@ -199,7 +195,7 @@ async function Reports() {
                 label: LEAD_SOURCE_LABELS[source.source],
                 value: source.count,
               }))}
-              format={(value) => formatNumber(value)}
+              format="number"
             />
           </CardContent>
         </Card>
@@ -214,10 +210,10 @@ async function Reports() {
             <RankedBarChart
               data={topVehicles.map((vehicle) => ({
                 label: `${vehicle.brand} ${vehicle.model}`,
-                value: vehicle.revenueCents / 100,
+                value: vehicle.revenueCents,
               }))}
               valueLabel="Faturamento"
-              format={(value) => formatCurrencyShort(value * 100)}
+              format="currency"
             />
           </CardContent>
         </Card>
@@ -232,10 +228,10 @@ async function Reports() {
             <RankedBarChart
               data={sellers.map((seller) => ({
                 label: seller.name,
-                value: seller.revenueCents / 100,
+                value: seller.revenueCents,
               }))}
               valueLabel="Faturamento"
-              format={(value) => formatCurrencyShort(value * 100)}
+              format="currency"
               color="var(--chart-3)"
             />
           </CardContent>
