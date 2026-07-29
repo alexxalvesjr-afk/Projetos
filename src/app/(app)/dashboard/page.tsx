@@ -41,7 +41,7 @@ import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { AgendaCard, FollowUpsCard } from "@/components/dashboard/agenda-card";
 
 export const metadata: Metadata = {
-  title: "Visão geral",
+  title: "Painel",
   description: "Indicadores da sua revenda em tempo real.",
 };
 

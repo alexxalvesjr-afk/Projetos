@@ -40,7 +40,7 @@ export const NAVIGATION: NavSection[] = [
     items: [
       {
         href: "/dashboard",
-        label: "Visão geral",
+        label: "Painel",
         icon: LayoutDashboard,
         permission: "dashboard:view",
         exact: true,
@@ -53,7 +53,7 @@ export const NAVIGATION: NavSection[] = [
       },
       {
         href: "/crm",
-        label: "Funil de vendas",
+        label: "Clientes",
         icon: KanbanSquare,
         permission: "lead:view",
       },

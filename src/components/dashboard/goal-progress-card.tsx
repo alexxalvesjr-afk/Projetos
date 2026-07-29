@@ -7,6 +7,7 @@ import { Target, TrendingUp } from "lucide-react";
 
 import { cn, clamp, percent } from "@/lib/utils";
 import { formatCurrency, formatCurrencyShort, formatPercent } from "@/lib/format";
+import { goalPace, paceSentence } from "@/lib/domain/goal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -109,6 +110,10 @@ export function GoalProgressCard({
   const headline = percent(revenueCents, goal.targetRevenueCents);
   const onPace = headline >= expectedPace;
 
+  // Paced on units rather than revenue: "3 sales short" is something a floor
+  // can act on this afternoon; "R$ 180 mil short" is not.
+  const pace = goalPace(units, goal.targetUnits);
+
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
@@ -116,8 +121,8 @@ export function GoalProgressCard({
           {scope === "organization" ? "Meta da loja" : "Minha meta"}
         </CardTitle>
         <CardDescription>
-          Dia {dayOfMonth} de {daysInMonth} · ritmo esperado{" "}
-          {formatPercent(expectedPace, { digits: 0 })}
+          {units} de {goal.targetUnits} veículos · dia {dayOfMonth} de{" "}
+          {daysInMonth}
         </CardDescription>
       </CardHeader>
 
@@ -146,6 +151,21 @@ export function GoalProgressCard({
             {onPace ? "No ritmo" : "Abaixo do ritmo"}
           </span>
         </div>
+
+        {/* The percentage above says where the month stands; this says where it
+            ends up, which is the part that changes what the floor does today. */}
+        {pace ? (
+          <p
+            className={cn(
+              "rounded-lg px-3 py-2.5 text-[13px] leading-relaxed",
+              pace.onTrack
+                ? "bg-success/10 text-success"
+                : "bg-warning/12 text-warning",
+            )}
+          >
+            {paceSentence(pace, "veículos")}
+          </p>
+        ) : null}
 
         {/* Bars */}
         <div className="space-y-4">

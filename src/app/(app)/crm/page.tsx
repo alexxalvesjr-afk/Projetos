@@ -17,7 +17,7 @@ import { KanbanBoard } from "@/components/crm/kanban-board";
 import { LeadDialog } from "@/components/crm/lead-dialog";
 
 export const metadata: Metadata = {
-  title: "Funil de vendas",
+  title: "Clientes",
   description: "Acompanhe cada oportunidade da sua revenda.",
 };
 
@@ -107,8 +107,8 @@ export default async function CrmPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Funil de vendas"
-        description="Arraste os cards para mover o lead entre as etapas. Tudo fica registrado no histórico."
+        title="Clientes"
+        description="No computador, arraste os cards entre as etapas. No celular, use o botão “Mover”. Tudo fica no histórico."
       />
 
       <Suspense
