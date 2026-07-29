@@ -1,13 +1,17 @@
 [build]
   command = "npm run build"
+  # Padrão oficial para @netlify/plugin-nextjs quando o projeto NÃO está em
+  # monorepo (sem `base` configurado): "publish" deve ser ".next" de forma
+  # explícita. Deixar em branco faz o Netlify recuar para a raiz do
+  # repositório, que é igual ao diretório base e dispara o erro "Your publish
+  # directory cannot be the same as the base directory of your site".
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
 
 # O runtime oficial do Next.js no Netlify. Cuida de SSR, rotas dinâmicas,
-# middleware, ISR e otimização de imagens — inclusive o diretório de
-# publicação, que não deve ser definido manualmente (nem aqui nem no painel)
-# quando este plugin está ativo.
+# middleware, ISR e otimização de imagens a partir do conteúdo de ".next".
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
