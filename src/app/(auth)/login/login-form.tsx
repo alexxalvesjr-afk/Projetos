@@ -22,12 +22,25 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-/** Demo credentials shown in non-production builds to make review painless. */
+/**
+ * One-click sign-in for reviewing the product.
+ *
+ * Shown in development, and in any deploy that opts in with
+ * NEXT_PUBLIC_DEMO_MODE=true — a preview or a stakeholder demo needs these
+ * far more than a local machine does. It stays off by default so a real
+ * dealership never ships a login screen advertising shared passwords.
+ */
 const DEMO_ACCOUNTS = [
   { label: "Proprietária", email: "owner@mypremium.com" },
   { label: "Gerente", email: "gerente@mypremium.com" },
   { label: "Vendedor", email: "thiago@mypremium.com" },
 ];
+
+const DEMO_PASSWORD = "Mypremium@2026";
+
+const SHOW_DEMO =
+  process.env.NODE_ENV !== "production" ||
+  process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export function LoginForm() {
   const router = useRouter();
@@ -65,7 +78,7 @@ export function LoginForm() {
 
   function fillDemo(email: string) {
     form.setValue("email", email);
-    form.setValue("password", "Mypremium@2026");
+    form.setValue("password", DEMO_PASSWORD);
     setFormError(null);
   }
 
@@ -152,10 +165,10 @@ export function LoginForm() {
           Entrar
         </Button>
 
-        {process.env.NODE_ENV !== "production" ? (
+        {SHOW_DEMO ? (
           <div className="space-y-2 rounded-lg border border-dashed p-3">
             <p className="text-muted-foreground text-xs font-medium">
-              Acesso de demonstração
+              Acesso de demonstração · senha {DEMO_PASSWORD}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {DEMO_ACCOUNTS.map((account) => (

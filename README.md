@@ -18,8 +18,7 @@ npm install
 cp .env.example .env        # then set DATABASE_URL and AUTH_SECRET
 
 # 3. Create the schema and load the demo dealership
-npm run db:push
-npm run db:seed
+npm run db:setup      # db:push + db:seed, and says what is wrong when it fails
 
 # 4. Run
 npm run dev                 # http://localhost:3000
@@ -164,6 +163,7 @@ npm run build        # production build (runs prisma generate first)
 npm run start        # serve the production build
 npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
+npm run db:setup     # empty database → working login, in one command
 npm run db:push      # sync schema without a migration
 npm run db:migrate   # create a migration
 npm run db:seed      # load the demo dealership (wipes existing data)

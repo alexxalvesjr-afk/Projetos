@@ -18,6 +18,40 @@ import { slugify } from "@/lib/utils";
 import { headers } from "next/headers";
 
 /**
+ * Distinguishes "the database is not there" from "the password is wrong".
+ *
+ * Prisma signals an unreachable server with `PrismaClientInitializationError`
+ * and error codes in the P1xxx range. Walks the `cause` chain because Auth.js
+ * nests the original error one or two levels down.
+ */
+function isInfrastructureFailure(error: unknown): boolean {
+  let current: unknown = error;
+
+  for (let depth = 0; current && depth < 5; depth += 1) {
+    const name = (current as { name?: string }).name ?? "";
+    const code = (current as { code?: string }).code ?? "";
+    const message = (current as { message?: string }).message ?? "";
+
+    if (
+      name === "PrismaClientInitializationError" ||
+      /^P1\d{3}$/.test(String(code)) ||
+      /Can't reach database server|ECONNREFUSED|ENOTFOUND/i.test(message)
+    ) {
+      return true;
+    }
+
+    // Auth.js puts the provider error under `cause.err`, plain errors under `cause`.
+    const cause = (current as { cause?: unknown }).cause;
+    current =
+      cause && typeof cause === "object" && "err" in cause
+        ? (cause as { err: unknown }).err
+        : cause;
+  }
+
+  return false;
+}
+
+/**
  * Credentials sign-in.
  *
  * Rate limited per IP *and* per email so neither a single host nor a
@@ -58,6 +92,17 @@ export async function login(raw: unknown): Promise<ActionResult<null>> {
       redirect: false,
     });
   } catch (error) {
+    // Auth.js wraps whatever `authorize` threw in a CallbackRouteError, which
+    // is itself an AuthError. Reporting the whole class as "wrong password" is
+    // how an unreachable database ends up telling people their correct
+    // credentials are wrong — so unwrap it and name the real failure.
+    if (isInfrastructureFailure(error)) {
+      return actionError(
+        "Não foi possível conectar ao banco de dados. Confira a variável DATABASE_URL do ambiente.",
+        "INTERNAL",
+      );
+    }
+
     if (error instanceof AuthError) {
       return actionError("E-mail ou senha incorretos.", "UNAUTHENTICATED");
     }
