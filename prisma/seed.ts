@@ -167,21 +167,21 @@ function emailFor(name: string): string {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  console.log("🌱  Seeding Revend CRM…");
+  console.log("🌱  Seeding Mypremium CRM…");
 
   // A clean slate every run. Order respects foreign keys; cascades cover the
   // rest via the Organization delete.
   await db.organization.deleteMany({});
 
-  const passwordHash = await bcrypt.hash("Revend@2026", 12);
+  const passwordHash = await bcrypt.hash("Mypremium@2026", 12);
 
   const organization = await db.organization.create({
     data: {
-      name: "Revend Motors",
-      slug: "revend-motors",
-      legalName: "Revend Comércio de Veículos LTDA",
+      name: "Mypremium Motors",
+      slug: "mypremium-motors",
+      legalName: "Mypremium Comércio de Veículos LTDA",
       taxId: "12.345.678/0001-90",
-      email: "contato@revendmotors.com.br",
+      email: "contato@mypremiummotors.com.br",
       phone: "1140028922",
       whatsapp: "11987654321",
       addressLine: "Av. Brigadeiro Faria Lima, 2200",
@@ -189,8 +189,8 @@ async function main() {
       state: "SP",
       postalCode: "01452-000",
       brandColor: "#6D4AFF",
-      instagramUrl: "https://instagram.com/revendmotors",
-      facebookUrl: "https://facebook.com/revendmotors",
+      instagramUrl: "https://instagram.com/mypremiummotors",
+      facebookUrl: "https://facebook.com/mypremiummotors",
       websiteSettings: {
         create: {
           heroHeadline: "Seminovos premium, com procedência de verdade.",
@@ -201,9 +201,9 @@ async function main() {
           aboutTitle: "Uma revenda que joga limpo",
           aboutBody:
             "Desde 2014 ajudamos famílias e empresas a comprar com segurança. Sem letra miúda, sem taxa escondida e sem carro com passado duvidoso — se não passaria para a nossa família, não vendemos para a sua.",
-          metaTitle: "Revend Motors — Seminovos premium em São Paulo",
+          metaTitle: "Mypremium Motors — Seminovos premium em São Paulo",
           metaDescription:
-            "Seminovos revisados com garantia de 12 meses, laudo cautelar e financiamento aprovado na hora. Confira o estoque da Revend Motors.",
+            "Seminovos revisados com garantia de 12 meses, laudo cautelar e financiamento aprovado na hora. Confira o estoque da Mypremium Motors.",
           published: true,
         },
       },
@@ -219,13 +219,13 @@ async function main() {
     jobTitle: string;
     commissionRate: number;
   }[] = [
-    { name: "Marina Duarte", email: "owner@revend.com", role: "OWNER", jobTitle: "Sócia-fundadora", commissionRate: 0 },
-    { name: "Ricardo Menezes", email: "admin@revend.com", role: "ADMIN", jobTitle: "Diretor de operações", commissionRate: 0 },
-    { name: "Patrícia Lopes", email: "gerente@revend.com", role: "MANAGER", jobTitle: "Gerente comercial", commissionRate: 1 },
-    { name: "Thiago Moraes", email: "thiago@revend.com", role: "SALESPERSON", jobTitle: "Consultor de vendas", commissionRate: 2.5 },
-    { name: "Juliana Prado", email: "juliana@revend.com", role: "SALESPERSON", jobTitle: "Consultora de vendas", commissionRate: 2.5 },
-    { name: "André Nogueira", email: "andre@revend.com", role: "SALESPERSON", jobTitle: "Consultor de vendas", commissionRate: 2.2 },
-    { name: "Contabilidade Vega", email: "financeiro@revend.com", role: "VIEWER", jobTitle: "Contabilidade externa", commissionRate: 0 },
+    { name: "Marina Duarte", email: "owner@mypremium.com", role: "OWNER", jobTitle: "Sócia-fundadora", commissionRate: 0 },
+    { name: "Ricardo Menezes", email: "admin@mypremium.com", role: "ADMIN", jobTitle: "Diretor de operações", commissionRate: 0 },
+    { name: "Patrícia Lopes", email: "gerente@mypremium.com", role: "MANAGER", jobTitle: "Gerente comercial", commissionRate: 1 },
+    { name: "Thiago Moraes", email: "thiago@mypremium.com", role: "SALESPERSON", jobTitle: "Consultor de vendas", commissionRate: 2.5 },
+    { name: "Juliana Prado", email: "juliana@mypremium.com", role: "SALESPERSON", jobTitle: "Consultora de vendas", commissionRate: 2.5 },
+    { name: "André Nogueira", email: "andre@mypremium.com", role: "SALESPERSON", jobTitle: "Consultor de vendas", commissionRate: 2.2 },
+    { name: "Contabilidade Vega", email: "financeiro@mypremium.com", role: "VIEWER", jobTitle: "Contabilidade externa", commissionRate: 0 },
   ];
 
   const team = [];
@@ -707,7 +707,7 @@ async function main() {
 
   await db.testimonial.createMany({
     data: [
-      { organizationId: organization.id, authorName: "Fernanda Ribeiro", authorRole: "Comprou um Jeep Compass", content: "Segunda vez que compro na Revend. Transparência total no laudo e o carro chegou impecável. Recomendo de olhos fechados.", rating: 5, position: 0 },
+      { organizationId: organization.id, authorName: "Fernanda Ribeiro", authorRole: "Comprou um Jeep Compass", content: "Segunda vez que compro na Mypremium. Transparência total no laudo e o carro chegou impecável. Recomendo de olhos fechados.", rating: 5, position: 0 },
       { organizationId: organization.id, authorName: "Marcos Aurélio", authorRole: "Comprou uma Toyota Hilux", content: "Negociação rápida, sem enrolação. Aceitaram meu usado por um valor justo e aprovaram o financiamento no mesmo dia.", rating: 5, position: 1 },
       { organizationId: organization.id, authorName: "Letícia Campos", authorRole: "Comprou um Honda Civic", content: "O atendimento fez diferença. Me mostraram inclusive os pontos que precisavam de atenção — isso é raro.", rating: 5, position: 2 },
       { organizationId: organization.id, authorName: "Eduardo Tavares", authorRole: "Comprou um VW T-Cross", content: "Comprei à distância, recebi vídeo detalhado do carro e a entrega foi pontual. Experiência muito acima da média.", rating: 4, position: 3 },
@@ -737,12 +737,12 @@ async function main() {
     data: {
       organizationId: organization.id,
       slug: "sobre",
-      title: "Sobre a Revend Motors",
+      title: "Sobre a Mypremium Motors",
       content:
         "<p>Somos uma revenda independente fundada em 2014 em São Paulo. Nosso princípio é simples: só vendemos o carro que colocaríamos a nossa própria família dentro.</p><p>Hoje somos mais de 20 profissionais entre consultores, mecânicos e equipe de documentação, com mais de 4.000 famílias atendidas.</p>",
-      seoTitle: "Sobre a Revend Motors — quem somos",
+      seoTitle: "Sobre a Mypremium Motors — quem somos",
       seoDescription:
-        "Conheça a história da Revend Motors, revenda de seminovos premium em São Paulo desde 2014.",
+        "Conheça a história da Mypremium Motors, revenda de seminovos premium em São Paulo desde 2014.",
     },
   });
 
@@ -767,7 +767,7 @@ async function main() {
 
   console.log("   ✓ site, notificações e auditoria");
   console.log("\n✅  Seed concluído.\n");
-  console.log("    Acesse com qualquer um destes usuários (senha: Revend@2026):");
+  console.log("    Acesse com qualquer um destes usuários (senha: Mypremium@2026):");
   for (const spec of teamSpec) {
     console.log(`      ${spec.role.padEnd(12)} ${spec.email}`);
   }

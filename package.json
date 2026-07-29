@@ -1,8 +1,8 @@
 {
-  "name": "revend-crm",
+  "name": "mypremium-crm",
   "version": "1.0.0",
   "private": true,
-  "description": "Revend CRM — the operating system for modern dealerships.",
+  "description": "Mypremium CRM — the operating system for modern dealerships.",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

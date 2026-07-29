@@ -5,7 +5,7 @@ import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = {
   title: "Criar conta",
-  description: "Crie a conta da sua revenda no Revend CRM em menos de um minuto.",
+  description: "Crie a conta da sua revenda no Mypremium CRM em menos de um minuto.",
 };
 
 export default function RegisterPage() {

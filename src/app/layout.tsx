@@ -9,8 +9,8 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "Revend CRM — o sistema operacional da sua revenda",
-    template: "%s · Revend CRM",
+    default: "Mypremium CRM — o sistema operacional da sua revenda",
+    template: "%s · Mypremium CRM",
   },
   description:
     "Estoque, funil de vendas, metas e marketing em um só lugar. O CRM feito para revendas de veículos que querem crescer com previsibilidade.",
@@ -21,19 +21,19 @@ export const metadata: Metadata = {
     "estoque de veículos",
     "funil de vendas automotivo",
   ],
-  authors: [{ name: "Revend" }],
+  authors: [{ name: "Mypremium" }],
   openGraph: {
     type: "website",
     locale: "pt_BR",
     url: appUrl,
-    siteName: "Revend CRM",
-    title: "Revend CRM — o sistema operacional da sua revenda",
+    siteName: "Mypremium CRM",
+    title: "Mypremium CRM — o sistema operacional da sua revenda",
     description:
       "Estoque, funil de vendas, metas e marketing em um só lugar.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Revend CRM",
+    title: "Mypremium CRM",
     description: "O sistema operacional da sua revenda de veículos.",
   },
   robots: {

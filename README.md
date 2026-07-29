@@ -1,4 +1,4 @@
-# Revend CRM
+# Mypremium CRM
 
 The operating system for a used-car dealership. Inventory, sales pipeline,
 agenda, targets, marketing attribution and a public storefront — one system,
@@ -29,15 +29,15 @@ npm run dev                 # http://localhost:3000
 
 The seed creates a fully populated dealership (34 vehicles, 72 leads, 12 sales,
 5 campaigns with 120 days of metrics). Password for all accounts:
-**`Revend@2026`**
+**`Mypremium@2026`**
 
 | Role | E-mail | What they see |
 |---|---|---|
-| Proprietário | `owner@revend.com` | Everything |
-| Administrador | `admin@revend.com` | All modules + user management + audit log |
-| Gerente | `gerente@revend.com` | Stock, pipeline, targets, marketing, CMS |
-| Vendedor | `thiago@revend.com` | Own pipeline only; no costs or margins |
-| Visualizador | `financeiro@revend.com` | Read-only |
+| Proprietário | `owner@mypremium.com` | Everything |
+| Administrador | `admin@mypremium.com` | All modules + user management + audit log |
+| Gerente | `gerente@mypremium.com` | Stock, pipeline, targets, marketing, CMS |
+| Vendedor | `thiago@mypremium.com` | Own pipeline only; no costs or margins |
+| Visualizador | `financeiro@mypremium.com` | Read-only |
 
 Sign in as the salesperson and then the owner — the difference in what each one
 can see is the clearest demonstration of the permission model.

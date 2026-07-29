@@ -19,7 +19,7 @@ import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export const metadata: Metadata = {
-  title: "Revend CRM — o sistema operacional da sua revenda",
+  title: "Mypremium CRM — o sistema operacional da sua revenda",
   description:
     "Estoque, funil de vendas, metas, marketing e site publicados a partir de um só lugar. Feito para revendas de veículos que querem crescer com previsibilidade.",
 };
@@ -247,7 +247,7 @@ export default async function LandingPage() {
         <div className="text-muted-foreground mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-8 text-sm sm:px-6">
           <Logo />
           <p className="text-xs">
-            © {new Date().getFullYear()} Revend. Feito para quem vive de girar
+            © {new Date().getFullYear()} Mypremium. Feito para quem vive de girar
             estoque.
           </p>
         </div>

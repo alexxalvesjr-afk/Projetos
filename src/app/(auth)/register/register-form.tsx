@@ -88,7 +88,7 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Nome da loja</FormLabel>
               <FormControl>
-                <Input placeholder="Revend Motors" autoFocus {...field} />
+                <Input placeholder="Duarte Seminovos" autoFocus {...field} />
               </FormControl>
               <FormDescription>
                 Aparece no seu site público e nas propostas.

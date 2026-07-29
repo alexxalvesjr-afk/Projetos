@@ -180,7 +180,7 @@ export async function GET(request: Request) {
   }
 
   const filename = safeFileName(
-    `revend-${name}-${new Date().toISOString().slice(0, 10)}.csv`,
+    `mypremium-${name}-${new Date().toISOString().slice(0, 10)}.csv`,
   );
 
   return new NextResponse(toCsv(header, rows), {

@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Wordmark. The glyph is an abstracted "R" cut from a speedometer arc — drawn
- * inline as SVG so it stays crisp, themeable and free of a network request.
+ * Wordmark. The glyph is a geometric "M" — drawn inline as SVG so it stays
+ * crisp, themeable and free of a network request.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -13,7 +13,7 @@ export function LogoMark({ className }: { className?: string }) {
       aria-hidden
     >
       <defs>
-        <linearGradient id="revend-mark" x1="0" y1="0" x2="32" y2="32">
+        <linearGradient id="mypremium-mark" x1="0" y1="0" x2="32" y2="32">
           <stop offset="0%" stopColor="var(--primary)" />
           <stop
             offset="100%"
@@ -21,9 +21,9 @@ export function LogoMark({ className }: { className?: string }) {
           />
         </linearGradient>
       </defs>
-      <rect width="32" height="32" rx="9" fill="url(#revend-mark)" />
+      <rect width="32" height="32" rx="9" fill="url(#mypremium-mark)" />
       <path
-        d="M11 22V10.5h6.2a3.9 3.9 0 0 1 1.2 7.6L21.4 22h-3.6l-2.5-3.6h-1.1V22H11Zm3.2-6.1h2.6a1.6 1.6 0 0 0 0-3.2h-2.6v3.2Z"
+        d="M10 22V10.5h3.4L16 15.2l2.6-4.7H22V22h-3.1v-6.4l-2.2 3.9h-1.4l-2.2-3.9V22H10Z"
         fill="white"
       />
     </svg>
@@ -42,7 +42,7 @@ export function Logo({
       <LogoMark />
       {showWordmark ? (
         <span className="text-[17px] font-semibold tracking-[-0.03em]">
-          Revend
+          Mypremium
         </span>
       ) : null}
     </span>

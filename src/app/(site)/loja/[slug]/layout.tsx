@@ -196,7 +196,7 @@ export default async function StoreLayout({
             <p>
               Feito com{" "}
               <Link href="/" className="text-foreground font-medium hover:underline">
-                Revend CRM
+                Mypremium CRM
               </Link>
             </p>
           </div>
