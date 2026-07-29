@@ -65,9 +65,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         });
       }
     }
-  } catch (error) {
-    // A database hiccup must not make the sitemap 500 and poison the crawl.
-    console.error("[sitemap] failed to enumerate stores", error);
+  } catch {
+    // A database hiccup — including an empty, not-yet-seeded one right after
+    // a first deploy — must not make the sitemap 500 and poison the crawl.
+    // `console.warn`, not `.error`: this is expected, recoverable behaviour,
+    // not a fault to flag in a build's error count.
+    console.warn(
+      "[sitemap] database unreachable or unseeded; returning an empty sitemap",
+    );
   }
 
   return entries;
