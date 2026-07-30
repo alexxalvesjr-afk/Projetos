@@ -166,7 +166,12 @@ function emailFor(name: string): string {
 // Seed
 // ---------------------------------------------------------------------------
 
-async function main() {
+/**
+ * Exported rather than only self-invoked so `/api/setup` can call it directly
+ * from a running deployment — the one path available when nobody has a local
+ * terminal with network access to the database.
+ */
+export async function runSeed() {
   console.log("🌱  Seeding Mypremium CRM…");
 
   // A clean slate every run. Order respects foreign keys; cascades cover the
@@ -796,13 +801,33 @@ async function main() {
     console.log(`      ${spec.role.padEnd(12)} ${spec.email}`);
   }
   console.log("");
+
+  return {
+    adminEmail,
+    adminPassword,
+    team: teamSpec.map((spec) => ({ role: spec.role, email: spec.email })),
+    teamPassword: "Mypremium@2026",
+    counts: {
+      users: team.length + 1,
+      vehicles: vehicles.length,
+      leads: leadIds.length,
+      sales: soldVehicles.length,
+      campaigns: campaigns.length,
+    },
+  };
 }
 
-main()
-  .catch((error) => {
-    console.error("❌  Seed falhou:", error);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await db.$disconnect();
-  });
+// Runs automatically via `tsx prisma/seed.ts` (npm run db:seed / db:setup), but
+// not when `/api/setup` imports `runSeed` — importing a module must never have
+// side effects, or every cold start of the app would silently re-seed it.
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  runSeed()
+    .catch((error) => {
+      console.error("❌  Seed falhou:", error);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await db.$disconnect();
+    });
+}
