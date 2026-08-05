@@ -1,15 +1,10 @@
-"use client";
-
-import * as React from "react";
-
 import { cn } from "@/lib/utils";
 
 /**
- * Fallback mark: a geometric "M", drawn inline as SVG.
- *
- * Used on its own in the collapsed sidebar, where a horizontal wordmark has
- * nowhere to go, and as the stand-in for the full lockup until the brand file
- * lands in /public.
+ * Compact mark for places a 379×85 lockup cannot go — the collapsed sidebar,
+ * chiefly. Drawn inline rather than cropped from the artwork: the car graphic
+ * and the wordmark overlap in the source file, so there is no rectangle that
+ * isolates the symbol cleanly.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -37,18 +32,12 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-/** Where the brand lockup is expected to live once uploaded. */
-const LOGO_SRC = "/logo-mypremium.png";
-
 /**
  * The brand lockup.
  *
- * Renders the real artwork from /public when it is there and silently falls
- * back to the drawn mark when it is not, so a missing file shows a wordmark
- * rather than a broken-image icon. That is the whole reason this is a client
- * component — `onError` is the only reliable signal that an image 404'd, and
- * the alternative (checking the filesystem during render) would tie a UI
- * component to the deployment's disk layout.
+ * The artwork already contains the word "Mypremium", so nothing is set beside
+ * it — a text wordmark next to a wordmark image reads as a duplicate. The name
+ * lives in `alt`, which is where a screen reader expects it.
  */
 export function Logo({
   className,
@@ -57,32 +46,18 @@ export function Logo({
   className?: string;
   showWordmark?: boolean;
 }) {
-  const [artworkFailed, setArtworkFailed] = React.useState(false);
-
   if (!showWordmark) return <LogoMark className={className} />;
 
-  if (!artworkFailed) {
-    // A plain <img> rather than next/image: the optimiser wants intrinsic
-    // dimensions for a file whose aspect ratio is not known here, and it would
-    // turn a swapped logo into a cache-busting exercise. The asset is a few KB
-    // and sits in the layout on every page — there is nothing to optimise.
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={LOGO_SRC}
-        alt="Mypremium"
-        className={cn("h-8 w-auto object-contain", className)}
-        onError={() => setArtworkFailed(true)}
-      />
-    );
-  }
-
   return (
-    <span className={cn("flex items-center gap-2.5", className)}>
-      <LogoMark />
-      <span className="text-[17px] font-semibold tracking-[-0.03em]">
-        Mypremium
-      </span>
-    </span>
+    // A plain <img>: the file is a fixed 379×85 asset in the layout of every
+    // page, so there is nothing for next/image's optimiser to earn back.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo-mypremium.png"
+      alt="Mypremium"
+      width={379}
+      height={85}
+      className={cn("h-9 w-auto object-contain", className)}
+    />
   );
 }
