@@ -50,23 +50,24 @@ function Column({
 
   return (
     <div className="flex h-full w-72 shrink-0 flex-col">
-      {/* Header */}
-      <div className="mb-3 flex items-center gap-2 px-1">
-        <span
-          aria-hidden
-          className="size-2 shrink-0 rounded-full"
-          style={{ backgroundColor: stage.color }}
-        />
-        <h3 className="text-sm font-semibold">{stage.label}</h3>
-        <span className="text-muted-foreground bg-muted tabular rounded-md px-1.5 py-0.5 text-xs font-medium">
+      {/* Header — a solid bar in the stage colour rather than a dot beside
+          text: at six columns the eye needs to find a lane before it reads a
+          label, and a filled band does that from across the room. */}
+      <div
+        className="mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-white"
+        style={{ backgroundColor: stage.color }}
+      >
+        <h3 className="truncate text-sm font-semibold">{stage.label}</h3>
+        <span className="tabular ml-auto shrink-0 rounded-md bg-black/20 px-1.5 py-0.5 text-xs font-semibold">
           {leads.length}
         </span>
-        {value > 0 ? (
-          <span className="text-muted-foreground tabular ml-auto text-xs">
-            {formatCurrencyShort(value)}
-          </span>
-        ) : null}
       </div>
+
+      {value > 0 ? (
+        <p className="text-muted-foreground tabular -mt-1.5 mb-2 px-1 text-xs">
+          {formatCurrencyShort(value)}
+        </p>
+      ) : null}
 
       {/* Drop zone */}
       <div
