@@ -21,7 +21,7 @@ export const organizationSchema = z.object({
   logoUrl: optionalUrl,
   brandColor: z
     .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, "Use um hexadecimal como #6D4AFF"),
+    .regex(/^#[0-9a-fA-F]{6}$/, "Use um hexadecimal como #DB2527"),
   instagramUrl: optionalUrl,
   facebookUrl: optionalUrl,
   youtubeUrl: optionalUrl,

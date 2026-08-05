@@ -17,7 +17,7 @@ export function LogoMark({ className }: { className?: string }) {
           <stop offset="0%" stopColor="var(--primary)" />
           <stop
             offset="100%"
-            stopColor="color-mix(in oklch, var(--primary) 55%, var(--chart-6))"
+            stopColor="color-mix(in oklch, var(--primary) 62%, oklch(0.42 0.17 12))"
           />
         </linearGradient>
       </defs>

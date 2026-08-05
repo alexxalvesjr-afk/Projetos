@@ -15,119 +15,134 @@
   --radius: 0.75rem;
 
   /* Surfaces ------------------------------------------------------------- */
-  --background: oklch(0.994 0.002 264);
-  --foreground: oklch(0.21 0.014 265);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.19 0.012 27);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.014 265);
+  --card-foreground: oklch(0.19 0.012 27);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.014 265);
+  --popover-foreground: oklch(0.19 0.012 27);
 
-  /* Brand ---------------------------------------------------------------- */
-  --primary: oklch(0.545 0.216 277);
-  --primary-foreground: oklch(0.99 0.002 264);
-  --primary-muted: oklch(0.95 0.03 277);
+  /* Brand ----------------------------------------------------------------
+     One red across both themes. It carries 4.9:1 against white text, so the
+     same value serves the wordmark, the primary button and chart series 1
+     without a per-context exception. */
+  --primary: oklch(0.575 0.215 27);
+  --primary-foreground: oklch(0.99 0.004 27);
+  --primary-muted: oklch(0.955 0.028 27);
 
-  /* Neutrals ------------------------------------------------------------- */
-  --secondary: oklch(0.968 0.004 265);
-  --secondary-foreground: oklch(0.28 0.015 265);
-  --muted: oklch(0.968 0.004 265);
-  --muted-foreground: oklch(0.55 0.016 265);
-  --accent: oklch(0.958 0.006 265);
-  --accent-foreground: oklch(0.24 0.015 265);
+  /* Neutrals -------------------------------------------------------------
+     Biased a few thousandths toward the brand hue rather than left at pure
+     grey: on a white ground the warmth is what stops the surface reading as
+     a default rather than a decision. */
+  --secondary: oklch(0.968 0.004 27);
+  --secondary-foreground: oklch(0.27 0.014 27);
+  --muted: oklch(0.968 0.004 27);
+  --muted-foreground: oklch(0.545 0.016 27);
+  --accent: oklch(0.958 0.007 27);
+  --accent-foreground: oklch(0.23 0.014 27);
 
-  /* Semantic ------------------------------------------------------------- */
-  --destructive: oklch(0.585 0.216 27);
-  --destructive-foreground: oklch(0.99 0.002 264);
-  --success: oklch(0.62 0.15 155);
-  --success-foreground: oklch(0.99 0.002 264);
-  --warning: oklch(0.75 0.16 75);
-  --warning-foreground: oklch(0.24 0.03 75);
-  --info: oklch(0.62 0.16 240);
-  --info-foreground: oklch(0.99 0.002 264);
+  /* Semantic -------------------------------------------------------------
+     `destructive` sits deliberately deeper and cooler than the brand red.
+     With a red primary the two would otherwise be the same swatch, and a
+     "Excluir" button must not look like a call to action. */
+  --destructive: oklch(0.495 0.198 18);
+  --destructive-foreground: oklch(0.99 0.004 27);
+  --success: oklch(0.605 0.148 152);
+  --success-foreground: oklch(0.99 0.004 152);
+  --warning: oklch(0.72 0.16 72);
+  --warning-foreground: oklch(0.22 0.03 72);
+  --info: oklch(0.60 0.155 245);
+  --info-foreground: oklch(0.99 0.004 245);
 
   /* Lines & focus -------------------------------------------------------- */
-  --border: oklch(0.918 0.006 265);
-  --input: oklch(0.918 0.006 265);
-  --ring: oklch(0.545 0.216 277);
+  --border: oklch(0.918 0.006 27);
+  --input: oklch(0.90 0.008 27);
+  --ring: oklch(0.575 0.215 27);
 
   /* Sidebar shell -------------------------------------------------------- */
-  --sidebar: oklch(0.982 0.003 265);
-  --sidebar-foreground: oklch(0.32 0.014 265);
-  --sidebar-accent: oklch(0.94 0.006 265);
-  --sidebar-accent-foreground: oklch(0.21 0.014 265);
-  --sidebar-border: oklch(0.915 0.006 265);
+  --sidebar: oklch(0.985 0.004 27);
+  --sidebar-foreground: oklch(0.32 0.014 27);
+  --sidebar-accent: oklch(0.945 0.012 27);
+  --sidebar-accent-foreground: oklch(0.20 0.014 27);
+  --sidebar-border: oklch(0.915 0.006 27);
 
   /* Data visualisation ---------------------------------------------------
      Categorical series order. Hues are assigned in this fixed sequence and
      never cycled or reordered by rank, so an entity keeps its colour when a
      filter changes the series count.
 
-     These steps are not eyeballed: both the light and dark sets were run
-     through a six-check validator (lightness band, chroma floor, adjacent-pair
-     separation under protanopia/deuteranopia/tritanopia, normal-vision floor
-     and contrast against their own surface) and re-stepped until every check
-     passed. Chart-2/3/5 sit under 3:1 against the light surface, which is why
-     every chart ships axis labels, a legend and tooltips rather than relying
-     on colour alone. Re-validate before changing any value. */
-  --chart-1: oklch(0.545 0.216 277); /* violet — brand / primary series */
-  --chart-2: oklch(0.755 0.16 75);   /* amber */
-  --chart-3: oklch(0.66 0.15 195);   /* teal */
-  --chart-4: oklch(0.6 0.2 330);     /* magenta */
+     Not eyeballed. Both sets were run through the six-check validator
+     (lightness band, chroma floor, adjacent-pair separation under
+     protanopia/deuteranopia/tritanopia, normal-vision floor, contrast against
+     their own surface) and re-stepped until every check passed. Teal sits at
+     position 2 on purpose: amber next to the brand red fails deuteranope
+     separation, and moving it one slot along is what fixes it.
+
+     Chart-2/3/5 fall under 3:1 on the light surface, which is why every chart
+     ships axis labels, a legend and tooltips rather than leaning on colour.
+     Re-run the validator before changing any value. */
+  --chart-1: oklch(0.575 0.215 27);  /* red — brand / primary series */
+  --chart-2: oklch(0.66 0.15 195);   /* teal */
+  --chart-3: oklch(0.755 0.16 80);   /* amber */
+  --chart-4: oklch(0.55 0.20 285);   /* violet */
   --chart-5: oklch(0.74 0.17 145);   /* green */
-  --chart-6: oklch(0.585 0.21 25);   /* red */
+  --chart-6: oklch(0.60 0.16 250);   /* blue */
 
   /* Elevation ------------------------------------------------------------ */
-  --shadow-color: 220 40% 12%;
+  --shadow-color: 20 40% 12%;
 }
 
 .dark {
-  --background: oklch(0.155 0.009 266);
-  --foreground: oklch(0.955 0.005 264);
-  --card: oklch(0.192 0.011 266);
-  --card-foreground: oklch(0.955 0.005 264);
-  --popover: oklch(0.203 0.012 266);
-  --popover-foreground: oklch(0.955 0.005 264);
+  --background: oklch(0.13 0.005 27);
+  --foreground: oklch(0.96 0.004 27);
+  --card: oklch(0.175 0.008 27);
+  --card-foreground: oklch(0.96 0.004 27);
+  --popover: oklch(0.195 0.009 27);
+  --popover-foreground: oklch(0.96 0.004 27);
 
-  --primary: oklch(0.672 0.185 277);
-  --primary-foreground: oklch(0.145 0.02 277);
-  --primary-muted: oklch(0.28 0.07 277);
+  /* The same brand red as the light theme — a wordmark that shifts hue
+     between themes stops reading as one brand. */
+  --primary: oklch(0.575 0.215 27);
+  --primary-foreground: oklch(0.99 0.004 27);
+  --primary-muted: oklch(0.29 0.075 27);
 
-  --secondary: oklch(0.248 0.013 266);
-  --secondary-foreground: oklch(0.94 0.005 264);
-  --muted: oklch(0.248 0.013 266);
-  --muted-foreground: oklch(0.68 0.014 265);
-  --accent: oklch(0.272 0.015 266);
-  --accent-foreground: oklch(0.96 0.005 264);
+  --secondary: oklch(0.235 0.01 27);
+  --secondary-foreground: oklch(0.94 0.004 27);
+  --muted: oklch(0.235 0.01 27);
+  --muted-foreground: oklch(0.68 0.012 27);
+  --accent: oklch(0.26 0.012 27);
+  --accent-foreground: oklch(0.96 0.004 27);
 
-  --destructive: oklch(0.648 0.2 25);
-  --destructive-foreground: oklch(0.16 0.02 25);
-  --success: oklch(0.7 0.155 155);
-  --success-foreground: oklch(0.16 0.03 155);
-  --warning: oklch(0.79 0.155 78);
-  --warning-foreground: oklch(0.19 0.04 78);
-  --info: oklch(0.69 0.15 240);
-  --info-foreground: oklch(0.16 0.03 240);
+  --destructive: oklch(0.58 0.19 18);
+  --destructive-foreground: oklch(0.99 0.004 27);
+  --success: oklch(0.68 0.15 152);
+  --success-foreground: oklch(0.15 0.03 152);
+  --warning: oklch(0.76 0.15 75);
+  --warning-foreground: oklch(0.19 0.04 75);
+  --info: oklch(0.67 0.145 245);
+  --info-foreground: oklch(0.15 0.03 245);
 
-  --border: oklch(0.288 0.014 266);
-  --input: oklch(0.31 0.015 266);
-  --ring: oklch(0.672 0.185 277);
+  --border: oklch(0.27 0.012 27);
+  --input: oklch(0.30 0.013 27);
+  --ring: oklch(0.575 0.215 27);
 
-  --sidebar: oklch(0.176 0.01 266);
-  --sidebar-foreground: oklch(0.8 0.01 265);
-  --sidebar-accent: oklch(0.258 0.014 266);
-  --sidebar-accent-foreground: oklch(0.97 0.005 264);
-  --sidebar-border: oklch(0.268 0.014 266);
+  --sidebar: oklch(0.155 0.007 27);
+  --sidebar-foreground: oklch(0.80 0.01 27);
+  --sidebar-accent: oklch(0.245 0.012 27);
+  --sidebar-accent-foreground: oklch(0.97 0.004 27);
+  --sidebar-border: oklch(0.255 0.012 27);
 
-  /* Dark steps are selected against the dark surface and validated
-     independently — not a mechanical inversion of the light set. */
-  --chart-1: oklch(0.63 0.19 277);
-  --chart-2: oklch(0.665 0.155 75);
-  --chart-3: oklch(0.575 0.14 195);
-  --chart-4: oklch(0.665 0.19 330);
-  --chart-5: oklch(0.655 0.17 145);
-  --chart-6: oklch(0.555 0.195 25);
+  /* Selected against the dark card surface and validated independently — the
+     dark band is narrower (L 0.48–0.67) than the light one, so this is not a
+     mechanical lightening of the set above. */
+  --chart-1: oklch(0.60 0.20 27);
+  --chart-2: oklch(0.645 0.12 195);
+  --chart-3: oklch(0.665 0.145 80);
+  --chart-4: oklch(0.60 0.17 285);
+  --chart-5: oklch(0.655 0.15 145);
+  --chart-6: oklch(0.62 0.14 250);
 
-  --shadow-color: 260 60% 2%;
+  --shadow-color: 20 60% 2%;
 }
 
 @theme inline {

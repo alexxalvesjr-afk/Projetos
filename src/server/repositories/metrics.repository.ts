@@ -25,6 +25,129 @@ export function monthStart(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
 }
 
+// ---------------------------------------------------------------------------
+// Dashboard period selector
+// ---------------------------------------------------------------------------
+
+/**
+ * Day-level ranges are computed in the dealership's own timezone, not UTC.
+ *
+ * A showroom in São Paulo runs three hours behind UTC, so a UTC-midnight "today"
+ * would roll over at 21:00 local — every evening sale would land on tomorrow and
+ * the "Hoje" tile would read zero while the floor was still selling. Month and
+ * year are computed the same way for consistency within this selector.
+ */
+const DEALER_TZ = "America/Sao_Paulo";
+
+/** Milliseconds to add to a UTC instant to get the wall clock in `tz`. */
+function tzOffsetMs(at: Date, tz: string): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .formatToParts(at)
+      .map((p) => [p.type, p.value]),
+  ) as Record<string, string>;
+
+  // `hour` comes back as "24" at midnight under hour12:false in some engines.
+  const hour = Number(parts.hour) % 24;
+  const asIfUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    hour,
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return asIfUtc - at.getTime();
+}
+
+/** The local wall-clock date in the dealership timezone, as Y/M/D numbers. */
+function localParts(at: Date) {
+  const shifted = new Date(at.getTime() + tzOffsetMs(at, DEALER_TZ));
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth(),
+    day: shifted.getUTCDate(),
+    weekday: shifted.getUTCDay(),
+  };
+}
+
+/** Converts a local wall-clock midnight to the UTC instant it happens at. */
+function localMidnightToUtc(year: number, month: number, day: number): Date {
+  const guess = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+  return new Date(guess.getTime() - tzOffsetMs(guess, DEALER_TZ));
+}
+
+export const PERIOD_KEYS = ["hoje", "ontem", "semana", "mes", "ano"] as const;
+export type PeriodKey = (typeof PERIOD_KEYS)[number];
+
+export const PERIOD_LABELS: Record<PeriodKey, string> = {
+  hoje: "Hoje",
+  ontem: "Ontem",
+  semana: "Semana",
+  mes: "Mês",
+  ano: "Ano",
+};
+
+export function isPeriodKey(value: unknown): value is PeriodKey {
+  return (
+    typeof value === "string" && (PERIOD_KEYS as readonly string[]).includes(value)
+  );
+}
+
+export function resolvePeriod(key: PeriodKey, now = new Date()): Period {
+  const { year, month, day, weekday } = localParts(now);
+  const midnight = (y: number, m: number, d: number) => localMidnightToUtc(y, m, d);
+
+  switch (key) {
+    case "hoje":
+      return { from: midnight(year, month, day), to: midnight(year, month, day + 1) };
+    case "ontem":
+      return { from: midnight(year, month, day - 1), to: midnight(year, month, day) };
+    case "semana": {
+      // Monday-first, matching how a dealership talks about "esta semana".
+      const back = (weekday + 6) % 7;
+      return {
+        from: midnight(year, month, day - back),
+        to: midnight(year, month, day - back + 7),
+      };
+    }
+    case "ano":
+      return { from: midnight(year, 0, 1), to: midnight(year + 1, 0, 1) };
+    case "mes":
+    default:
+      return { from: midnight(year, month, 1), to: midnight(year, month + 1, 1) };
+  }
+}
+
+/** Human label for the range currently on screen, e.g. "junho de 2026". */
+export function periodLabel(key: PeriodKey, now = new Date()): string {
+  const { from } = resolvePeriod(key, now);
+  const fmt = (opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("pt-BR", { timeZone: DEALER_TZ, ...opts }).format(from);
+
+  switch (key) {
+    case "hoje":
+    case "ontem":
+      return fmt({ day: "2-digit", month: "long" });
+    case "semana":
+      return `semana de ${fmt({ day: "2-digit", month: "short" })}`;
+    case "ano":
+      return fmt({ year: "numeric" });
+    case "mes":
+    default:
+      return fmt({ month: "long", year: "numeric" });
+  }
+}
+
 export type SalesSummary = {
   revenueCents: number;
   costCents: number;
@@ -95,17 +218,34 @@ export const metricsRepository = {
 
   /** Live stock position, bucketed by status. */
   async stockSummary(organizationId: string) {
-    const [grouped, valuation] = await Promise.all([
+    // Not `as const`: a readonly tuple is not assignable to Prisma's mutable
+    // `in` filter, and the resulting inference failure silently degrades every
+    // aggregate below to `unknown`.
+    const onFloor: Prisma.VehicleWhereInput = {
+      organizationId,
+      status: { in: ["AVAILABLE", "RESERVED"] },
+    };
+
+    const [grouped, valuation, priced, withoutMargin] = await Promise.all([
       db.vehicle.groupBy({
         by: ["status"],
         where: { organizationId },
         _count: { _all: true },
       }),
       db.vehicle.aggregate({
-        where: { organizationId, status: { in: ["AVAILABLE", "RESERVED"] } },
+        where: onFloor,
         _sum: { priceCents: true, costCents: true },
         _count: { _all: true },
       }),
+      // Capital only means something for units whose purchase price is known;
+      // a unit entered without a cost would otherwise read as pure profit.
+      db.vehicle.aggregate({
+        where: { ...onFloor, costCents: { gt: 0 } },
+        _sum: { priceCents: true, costCents: true },
+        _count: { _all: true },
+      }),
+      // No floor price set means the salesperson has no discount authority yet.
+      db.vehicle.count({ where: { ...onFloor, minPriceCents: { lte: 0 } } }),
     ]);
 
     const byStatus = Object.fromEntries(
@@ -120,8 +260,15 @@ export const metricsRepository = {
       sold: byStatus.SOLD ?? 0,
       inStock: valuation._count._all,
       /** Capital currently parked in unsold units. */
-      investedCents: valuation._sum.costCents ?? 0,
+      investedCents: priced._sum.costCents ?? 0,
       retailValueCents: valuation._sum.priceCents ?? 0,
+      /** Units backing `investedCents` — the rest have no cost recorded. */
+      pricedCount: priced._count._all,
+      /** What the floor is worth if every priced unit sells at its ask. */
+      expectedProfitCents:
+        (priced._sum.priceCents ?? 0) - (priced._sum.costCents ?? 0),
+      /** Units the salesperson cannot discount because no floor price exists. */
+      withoutMarginCount: withoutMargin,
     };
   },
 

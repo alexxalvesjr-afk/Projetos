@@ -1,30 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import {
-  BadgeDollarSign,
-  Banknote,
-  Car,
-  CircleDollarSign,
-  ClipboardList,
-  Gauge,
-  Plus,
-  TrendingUp,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { ClipboardList, Plus, TrendingUp, UserPlus } from "lucide-react";
 
 import { requireAuth } from "@/lib/session";
 import { hasPermission } from "@/lib/rbac";
 import { delta } from "@/lib/utils";
+import { formatCurrencyShort, formatPercent } from "@/lib/format";
+import { STAGE_LABELS } from "@/lib/domain/lead";
 import {
-  formatCompact,
-  formatCurrencyShort,
-  formatPercent,
-} from "@/lib/format";
+  isPeriodKey,
+  periodLabel,
+  type PeriodKey,
+} from "@/server/repositories/metrics.repository";
 import { getDashboardData } from "@/server/services/dashboard.service";
 import { PageHeader } from "@/components/shared/page-header";
-import { StatCard, StatCardSkeleton } from "@/components/shared/stat-card";
+import { StatCardSkeleton } from "@/components/shared/stat-card";
+import { GoalBanner } from "@/components/dashboard/goal-banner";
+import { MarginAlert } from "@/components/dashboard/margin-alert";
+import { PeriodFilter } from "@/components/dashboard/period-filter";
+import { SalesKpi } from "@/components/dashboard/sales-kpi";
+import { InvestedCard, FunnelNowCard } from "@/components/dashboard/store-now";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,7 +31,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RevenueChart } from "@/components/charts/revenue-chart";
-import { GoalProgressCard } from "@/components/dashboard/goal-progress-card";
 import { TopSellersCard } from "@/components/dashboard/top-sellers-card";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { AgendaCard, FollowUpsCard } from "@/components/dashboard/agenda-card";
@@ -58,9 +53,9 @@ function DashboardSkeleton() {
   );
 }
 
-async function DashboardContent() {
+async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
   const user = await requireAuth();
-  const data = await getDashboardData(user);
+  const data = await getDashboardData(user, periodKey);
 
   const showFinancials = hasPermission(user.role, "dashboard:view_financials");
   const canManageGoals = hasPermission(user.role, "goal:manage");
@@ -68,156 +63,155 @@ async function DashboardContent() {
   const {
     sales,
     salesPrevious,
+    monthSales,
     stock,
     leads,
-    leadsPrevious,
     monthlySeries,
+    dailySeries,
     goal,
     topSellers,
     recentActivity,
     upcoming,
     followUps,
-    openTasks,
   } = data;
+
+  // Sparklines read the buckets inside the selected window; a single bucket
+  // draws a flat baseline rather than a misleading spike.
+  const revenueSeries = dailySeries.map((d) => d.revenueCents);
+  const profitSeries = dailySeries.map((d) => d.profitCents);
+  const unitsSeries = dailySeries.map((d) => d.units);
+
+  const openStages = ["NEW", "CONTACTED", "VISIT_SCHEDULED", "NEGOTIATION"] as const;
+  const funnelStages = openStages.map((stage) => ({
+    label: STAGE_LABELS[stage],
+    count: leads.byStage[stage] ?? 0,
+  }));
 
   return (
     <div className="space-y-6">
-      {/* KPI grid ---------------------------------------------------------- */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          index={0}
-          label="Faturamento no mês"
-          value={formatCurrencyShort(sales.revenueCents)}
-          delta={delta(sales.revenueCents, salesPrevious.revenueCents)}
-          icon={<CircleDollarSign />}
-          hint="Soma das vendas fechadas no mês corrente."
-        />
+      {/* Meta do mês ------------------------------------------------------- */}
+      <GoalBanner
+        targetUnits={goal?.targetUnits ?? 0}
+        soldUnits={monthSales.unitsSold}
+        scope={data.scope}
+        canManage={canManageGoals}
+      />
 
-        {showFinancials ? (
-          <StatCard
-            index={1}
-            label="Lucro no mês"
-            value={formatCurrencyShort(sales.profitCents)}
-            delta={delta(sales.profitCents, salesPrevious.profitCents)}
-            icon={<TrendingUp />}
-            accent="success"
-            hint="Faturamento menos custo de aquisição e preparação."
-            footer={
-              <p className="text-muted-foreground text-xs">
-                Margem de {formatPercent(sales.marginPercent)}
-              </p>
-            }
-          />
-        ) : (
-          <StatCard
-            index={1}
-            label="Ticket médio"
-            value={formatCurrencyShort(sales.averageTicketCents)}
-            delta={delta(
-              sales.averageTicketCents,
-              salesPrevious.averageTicketCents,
-            )}
-            icon={<BadgeDollarSign />}
-            accent="success"
-          />
-        )}
+      {/* Pendência que trava o vendedor ------------------------------------ */}
+      {showFinancials ? (
+        <MarginAlert count={stock.withoutMarginCount} />
+      ) : null}
 
-        <StatCard
-          index={2}
-          label="Veículos vendidos"
-          value={sales.unitsSold}
-          delta={delta(sales.unitsSold, salesPrevious.unitsSold)}
-          icon={<Car />}
-          accent="info"
-        />
-
-        <StatCard
-          index={3}
-          label="Veículos em estoque"
-          value={stock.inStock}
-          icon={<Gauge />}
-          accent="warning"
-          hint="Disponíveis e reservados."
-          footer={
-            showFinancials ? (
-              <p className="text-muted-foreground text-xs">
-                {formatCurrencyShort(stock.investedCents)} de capital investido
-              </p>
-            ) : undefined
-          }
-        />
-
-        <StatCard
-          index={4}
-          label="Leads no mês"
-          value={leads.created}
-          delta={delta(leads.created, leadsPrevious.created)}
-          icon={<UserPlus />}
-        />
-
-        <StatCard
-          index={5}
-          label="Taxa de conversão"
-          value={formatPercent(leads.conversionRate)}
-          delta={delta(leads.conversionRate, leadsPrevious.conversionRate)}
-          icon={<Users />}
-          accent="success"
-          hint="Leads ganhos sobre leads criados no período."
-        />
-
-        <StatCard
-          index={6}
-          label="Ticket médio"
-          value={formatCurrencyShort(sales.averageTicketCents)}
-          delta={delta(
-            sales.averageTicketCents,
-            salesPrevious.averageTicketCents,
-          )}
-          icon={<Banknote />}
-          accent="info"
-        />
-
-        <StatCard
-          index={7}
-          label="Pipeline aberto"
-          value={formatCompact(leads.open)}
-          icon={<ClipboardList />}
-          accent="warning"
-          hint="Leads ativos em qualquer etapa antes de ganho/perdido."
-          footer={
-            <p className="text-muted-foreground text-xs">
-              {openTasks} {openTasks === 1 ? "tarefa aberta" : "tarefas abertas"}
+      {/* Visão de vendas --------------------------------------------------- */}
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold tracking-[-0.02em]">
+              Visão de vendas
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Acompanhe o que foi fechado no período.
             </p>
-          }
-        />
-      </div>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/reports">Relatórios</Link>
+          </Button>
+        </div>
 
-      {/* Chart + goal ------------------------------------------------------ */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Faturamento e lucro</CardTitle>
-            <CardDescription>Últimos 12 meses</CardDescription>
-            <CardAction>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/reports">Relatórios</Link>
-              </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <RevenueChart data={monthlySeries} granularity="month" />
-          </CardContent>
-        </Card>
+        <PeriodFilter active={periodKey} label={periodLabel(periodKey)} />
 
-        <GoalProgressCard
-          goal={goal}
-          revenueCents={sales.revenueCents}
-          profitCents={sales.profitCents}
-          units={sales.unitsSold}
-          scope={data.scope}
-          canManage={canManageGoals}
-        />
-      </div>
+        <p className="text-muted-foreground text-xs">
+          Os três números abaixo mudam conforme o período escolhido acima.
+        </p>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {showFinancials ? (
+            <SalesKpi
+              label="Lucro"
+              value={formatCurrencyShort(sales.profitCents)}
+              delta={delta(sales.profitCents, salesPrevious.profitCents)}
+              hint={`${sales.unitsSold} ${sales.unitsSold === 1 ? "venda" : "vendas"} · margem ${formatPercent(sales.marginPercent, { digits: 0 })}`}
+              series={profitSeries}
+              tone="var(--chart-5)"
+            />
+          ) : (
+            <SalesKpi
+              label="Ticket médio"
+              value={formatCurrencyShort(sales.averageTicketCents)}
+              delta={delta(
+                sales.averageTicketCents,
+                salesPrevious.averageTicketCents,
+              )}
+              hint="por venda no período"
+              series={revenueSeries}
+              tone="var(--chart-5)"
+            />
+          )}
+
+          <SalesKpi
+            label="Faturamento"
+            value={formatCurrencyShort(sales.revenueCents)}
+            delta={delta(sales.revenueCents, salesPrevious.revenueCents)}
+            hint={`Ticket médio ${formatCurrencyShort(sales.averageTicketCents)} por venda`}
+            series={revenueSeries}
+          />
+
+          <SalesKpi
+            label="Vendas"
+            value={sales.unitsSold}
+            delta={delta(sales.unitsSold, salesPrevious.unitsSold)}
+            hint="carros vendidos no período"
+            series={unitsSeries}
+            tone="var(--chart-2)"
+          />
+        </div>
+      </section>
+
+      {/* Sua loja agora ---------------------------------------------------- */}
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h2 className="text-xl font-semibold tracking-[-0.02em]">
+            Sua loja agora
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            foto do momento · não muda com o período
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          {showFinancials ? (
+            <InvestedCard
+              investedCents={stock.investedCents}
+              retailValueCents={stock.retailValueCents}
+              expectedProfitCents={stock.expectedProfitCents}
+              pricedCount={stock.pricedCount}
+              inStock={stock.inStock}
+              withoutMarginCount={stock.withoutMarginCount}
+            />
+          ) : null}
+
+          <FunnelNowCard stages={funnelStages} openCount={leads.open} />
+        </div>
+      </section>
+
+      {/* Tendência ---------------------------------------------------------
+          The goal card that used to sit beside this is gone: the banner at the
+          top of the page states the same target, and showing it twice made the
+          screen look like two different sources of truth. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Faturamento e lucro</CardTitle>
+          <CardDescription>Últimos 12 meses</CardDescription>
+          <CardAction>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/reports">Relatórios</Link>
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <RevenueChart data={monthlySeries} granularity="month" />
+        </CardContent>
+      </Card>
 
       {/* Operational panels ------------------------------------------------ */}
       <div className="grid gap-4 lg:grid-cols-3">
@@ -271,7 +265,16 @@ async function DashboardContent() {
   );
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ periodo?: string }>;
+}) {
+  const { periodo } = await searchParams;
+  // An unrecognised value falls back to the month rather than erroring: the
+  // window comes from a URL anyone can hand-edit.
+  const periodKey: PeriodKey = isPeriodKey(periodo) ? periodo : "mes";
+
   const user = await requireAuth();
   const firstName = user.name.split(" ")[0];
 
@@ -306,8 +309,10 @@ export default async function DashboardPage() {
         ) : null}
       </PageHeader>
 
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardContent />
+      {/* Keyed on the window so switching periods re-suspends and shows the
+          skeleton, instead of leaving stale numbers on screen mid-fetch. */}
+      <Suspense key={periodKey} fallback={<DashboardSkeleton />}>
+        <DashboardContent periodKey={periodKey} />
       </Suspense>
     </div>
   );

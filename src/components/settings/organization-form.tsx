@@ -263,7 +263,7 @@ export function OrganizationForm({
                         className="size-9.5 shrink-0 rounded-lg border"
                         style={{ backgroundColor: brandColor }}
                       />
-                      <Input {...field} placeholder="#6D4AFF" />
+                      <Input {...field} placeholder="#DB2527" />
                     </div>
                   </FormControl>
                   <FormMessage />

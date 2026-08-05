@@ -5,6 +5,8 @@ import {
   metricsRepository,
   monthPeriod,
   previousPeriod,
+  resolvePeriod,
+  type PeriodKey,
 } from "@/server/repositories/metrics.repository";
 import { leadRepository } from "@/server/repositories/lead.repository";
 
@@ -14,13 +16,23 @@ import { leadRepository } from "@/server/repositories/lead.repository";
  * Salespeople see their own numbers; anyone with `lead:view_all` sees the whole
  * floor. Scoping is decided here, once, rather than in each widget.
  */
-export async function getDashboardData(user: SessionUser) {
+export async function getDashboardData(
+  user: SessionUser,
+  periodKey: PeriodKey = "mes",
+) {
   const org = user.organizationId;
   const seesEverything = hasPermission(user.role, "lead:view_all");
   const scopeId = seesEverything ? undefined : user.id;
 
-  const current = monthPeriod();
+  // The three headline numbers follow this window; everything under "Sua loja
+  // agora" is a point-in-time snapshot and deliberately ignores it.
+  const current = resolvePeriod(periodKey);
   const previous = previousPeriod(current);
+
+  // Targets are always monthly. Reading them through the selected window would
+  // make the goal banner vanish the moment someone clicked "Hoje", because no
+  // Goal row is stored against a single day.
+  const month = monthPeriod();
 
   // Twelve-month window for the trend chart.
   const trendFrom = new Date(
@@ -30,6 +42,7 @@ export async function getDashboardData(user: SessionUser) {
   const [
     sales,
     salesPrevious,
+    monthSales,
     stock,
     leads,
     leadsPrevious,
@@ -44,6 +57,7 @@ export async function getDashboardData(user: SessionUser) {
   ] = await Promise.all([
     metricsRepository.salesSummary(org, current, scopeId),
     metricsRepository.salesSummary(org, previous, scopeId),
+    metricsRepository.salesSummary(org, month, scopeId),
     metricsRepository.stockSummary(org),
     metricsRepository.leadSummary(org, current, scopeId),
     metricsRepository.leadSummary(org, previous, scopeId),
@@ -59,7 +73,7 @@ export async function getDashboardData(user: SessionUser) {
     db.goal.findFirst({
       where: {
         organizationId: org,
-        period: current.from,
+        period: month.from,
         ...(seesEverything
           ? { type: "ORGANIZATION" }
           : { type: "USER", userId: user.id }),
@@ -105,8 +119,10 @@ export async function getDashboardData(user: SessionUser) {
   return {
     scope: seesEverything ? ("organization" as const) : ("personal" as const),
     period: current,
+    periodKey,
     sales,
     salesPrevious,
+    monthSales,
     stock,
     leads,
     leadsPrevious,

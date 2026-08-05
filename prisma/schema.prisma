@@ -215,7 +215,7 @@ model Organization {
   country     String  @default("BR")
 
   logoUrl     String?
-  brandColor  String  @default("#6D4AFF")
+  brandColor  String  @default("#DB2527")
   currency    String  @default("BRL")
   locale      String  @default("pt-BR")
   timezone    String  @default("America/Sao_Paulo")

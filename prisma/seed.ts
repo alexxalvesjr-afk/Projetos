@@ -202,7 +202,7 @@ export async function runSeed() {
       city: "São Paulo",
       state: "SP",
       postalCode: "01452-000",
-      brandColor: "#6D4AFF",
+      brandColor: "#DB2527",
       instagramUrl: "https://instagram.com/mypremiummotors",
       facebookUrl: "https://facebook.com/mypremiummotors",
       websiteSettings: {
