@@ -17,6 +17,21 @@ import {
 import { UserMenu } from "@/components/layout/user-menu";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 
+/**
+ * Absolute address of the dealership's public storefront.
+ *
+ * A relative href would resolve against whatever host the admin happens to be
+ * on — a Vercel preview build, a branch deployment, localhost — and open a copy
+ * of the site rather than the one customers see. NEXT_PUBLIC_APP_URL is the
+ * canonical public origin, so the button lands on the real site from any of
+ * them. Falls back to the relative path when the variable is unset, which is
+ * the correct behaviour locally and never worse than what it replaced.
+ */
+function storefrontUrl(slug: string): string {
+  const origin = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "");
+  return origin ? `${origin}/loja/${slug}` : `/loja/${slug}`;
+}
+
 export function Topbar({
   user,
   organizationName,
@@ -63,7 +78,7 @@ export function Topbar({
         <Tooltip content="Abrir site público">
           <Button variant="ghost" size="icon" asChild>
             <Link
-              href={`/loja/${organizationSlug}`}
+              href={storefrontUrl(organizationSlug)}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Abrir site público"
