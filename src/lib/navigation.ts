@@ -2,7 +2,6 @@ import {
   BarChart3,
   CalendarDays,
   Car,
-  Globe,
   KanbanSquare,
   LayoutDashboard,
   Megaphone,
@@ -91,12 +90,6 @@ export const NAVIGATION: NavSection[] = [
   {
     label: "Configuração",
     items: [
-      {
-        href: "/cms",
-        label: "Site",
-        icon: Globe,
-        permission: "cms:view",
-      },
       {
         href: "/users",
         label: "Equipe",

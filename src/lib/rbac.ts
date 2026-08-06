@@ -53,8 +53,6 @@ export const PERMISSIONS = [
   "settings:view",
   "settings:update",
 
-  "cms:view",
-  "cms:update",
 
   "audit:view",
 ] as const;
@@ -93,8 +91,6 @@ const MANAGER_PERMISSIONS: Permission[] = [
   "campaign:view",
   "campaign:manage",
   "user:view",
-  "cms:view",
-  "cms:update",
   "settings:view",
 ];
 

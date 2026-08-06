@@ -20,7 +20,6 @@ export default function robots(): MetadataRoute.Robots {
         "/marketing",
         "/users",
         "/settings",
-        "/cms",
         "/login",
         "/register",
       ],

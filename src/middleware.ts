@@ -24,7 +24,6 @@ export const config = {
     "/marketing/:path*",
     "/users/:path*",
     "/settings/:path*",
-    "/cms/:path*",
     "/login",
     "/register",
   ],

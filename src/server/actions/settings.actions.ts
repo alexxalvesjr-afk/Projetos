@@ -7,22 +7,16 @@ import { db } from "@/lib/db";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { canAssignRole } from "@/lib/rbac";
 import { createAction } from "@/lib/safe-action";
-import { normaliseText, sanitizeHtml } from "@/lib/sanitize";
+import { normaliseText } from "@/lib/sanitize";
 import {
-  cmsDeleteSchema,
-  faqSchema,
   organizationSchema,
   profileSchema,
-  serviceSchema,
-  testimonialSchema,
   userInviteSchema,
   userUpdateSchema,
-  websiteSettingsSchema,
 } from "@/lib/validations/settings";
 
 function revalidateSite(slug: string) {
   revalidatePath(`/loja/${slug}`, "layout");
-  revalidatePath("/cms");
   revalidatePath("/settings");
 }
 
@@ -160,155 +154,5 @@ export const updateUser = createAction({
 
     revalidatePath("/users");
     return { id: target.id };
-  },
-});
-
-// ---------------------------------------------------------------------------
-// Website CMS
-// ---------------------------------------------------------------------------
-
-export const updateWebsiteSettings = createAction({
-  input: websiteSettingsSchema,
-  permission: "cms:update",
-  audit: { action: "cms.update", entity: "WebsiteSettings" },
-  async handler({ input, ctx }) {
-    const data = {
-      heroHeadline: normaliseText(input.heroHeadline),
-      // These columns are non-nullable with defaults; an empty string is the
-      // "unset" signal the storefront checks before rendering the section.
-      heroSubheadline: input.heroSubheadline ?? "",
-      heroImageUrl: input.heroImageUrl || null,
-      heroCtaLabel: normaliseText(input.heroCtaLabel),
-      aboutTitle: input.aboutTitle ?? "",
-      // The about body is rendered as HTML on the storefront, so it is the one
-      // field that must pass through the allow-list sanitiser.
-      aboutBody: input.aboutBody ? sanitizeHtml(input.aboutBody) : null,
-      showTestimonials: input.showTestimonials,
-      showServices: input.showServices,
-      showFaq: input.showFaq,
-      metaTitle: input.metaTitle || null,
-      metaDescription: input.metaDescription || null,
-      ogImageUrl: input.ogImageUrl || null,
-      published: input.published,
-    };
-
-    await db.websiteSettings.upsert({
-      where: { organizationId: ctx.user.organizationId },
-      create: { organizationId: ctx.user.organizationId, ...data },
-      update: data,
-    });
-
-    revalidateSite(ctx.user.organizationSlug);
-    return { id: ctx.user.organizationId };
-  },
-});
-
-export const upsertTestimonial = createAction({
-  input: testimonialSchema,
-  permission: "cms:update",
-  audit: { action: "cms.update", entity: "Testimonial" },
-  async handler({ input, ctx }) {
-    const data = {
-      authorName: normaliseText(input.authorName),
-      authorRole: input.authorRole || null,
-      content: normaliseText(input.content),
-      rating: input.rating,
-      published: input.published,
-    };
-
-    const record = input.id
-      ? await db.testimonial
-          .updateMany({
-            where: { id: input.id, organizationId: ctx.user.organizationId },
-            data,
-          })
-          .then(() => ({ id: input.id! }))
-      : await db.testimonial.create({
-          data: { organizationId: ctx.user.organizationId, ...data },
-          select: { id: true },
-        });
-
-    revalidateSite(ctx.user.organizationSlug);
-    return record;
-  },
-});
-
-export const upsertFaq = createAction({
-  input: faqSchema,
-  permission: "cms:update",
-  audit: { action: "cms.update", entity: "FaqItem" },
-  async handler({ input, ctx }) {
-    const data = {
-      question: normaliseText(input.question),
-      answer: normaliseText(input.answer),
-      published: input.published,
-    };
-
-    const record = input.id
-      ? await db.faqItem
-          .updateMany({
-            where: { id: input.id, organizationId: ctx.user.organizationId },
-            data,
-          })
-          .then(() => ({ id: input.id! }))
-      : await db.faqItem.create({
-          data: { organizationId: ctx.user.organizationId, ...data },
-          select: { id: true },
-        });
-
-    revalidateSite(ctx.user.organizationSlug);
-    return record;
-  },
-});
-
-export const upsertService = createAction({
-  input: serviceSchema,
-  permission: "cms:update",
-  audit: { action: "cms.update", entity: "Service" },
-  async handler({ input, ctx }) {
-    const data = {
-      title: normaliseText(input.title),
-      description: normaliseText(input.description),
-      icon: input.icon,
-      published: input.published,
-    };
-
-    const record = input.id
-      ? await db.service
-          .updateMany({
-            where: { id: input.id, organizationId: ctx.user.organizationId },
-            data,
-          })
-          .then(() => ({ id: input.id! }))
-      : await db.service.create({
-          data: { organizationId: ctx.user.organizationId, ...data },
-          select: { id: true },
-        });
-
-    revalidateSite(ctx.user.organizationSlug);
-    return record;
-  },
-});
-
-export const deleteCmsItem = createAction({
-  input: cmsDeleteSchema,
-  permission: "cms:update",
-  audit: { action: "cms.update", entity: "CmsItem" },
-  async handler({ input, ctx }) {
-    const where = {
-      id: input.id,
-      organizationId: ctx.user.organizationId,
-    };
-
-    if (input.entity === "testimonial") {
-      await db.testimonial.deleteMany({ where });
-    } else if (input.entity === "faq") {
-      await db.faqItem.deleteMany({ where });
-    } else {
-      await db.service.deleteMany({ where });
-    }
-
-    revalidateSite(ctx.user.organizationSlug);
-    return { id: input.id };
   },
 });
