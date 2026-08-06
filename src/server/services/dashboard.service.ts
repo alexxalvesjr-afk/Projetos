@@ -34,11 +34,6 @@ export async function getDashboardData(
   // Goal row is stored against a single day.
   const month = monthPeriod();
 
-  // Twelve-month window for the trend chart.
-  const trendFrom = new Date(
-    Date.UTC(current.from.getUTCFullYear(), current.from.getUTCMonth() - 11, 1),
-  );
-
   const [
     sales,
     salesPrevious,
@@ -62,11 +57,10 @@ export async function getDashboardData(
     metricsRepository.stockTurnover(org, 6),
     metricsRepository.leadSummary(org, current, scopeId),
     metricsRepository.leadSummary(org, previous, scopeId),
-    metricsRepository.salesTimeSeries(
-      org,
-      { from: trendFrom, to: current.to },
-      "month",
-    ),
+    // Calendar year, not a trailing twelve months: the chart is labelled
+    // Jan–Dez, and a window that starts in the middle of last year would put
+    // two different Januaries on the same axis.
+    metricsRepository.salesTimeSeries(org, resolvePeriod("ano"), "month"),
     metricsRepository.salesTimeSeries(org, current, "day"),
     metricsRepository.topSellers(org, current, 5),
 

@@ -34,7 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { RevenueChart } from "@/components/charts/revenue-chart";
+import { YearSalesChart } from "@/components/charts/year-sales-chart";
 import { TopSellersCard } from "@/components/dashboard/top-sellers-card";
 import { AgendaCard, FollowUpsCard } from "@/components/dashboard/agenda-card";
 
@@ -207,24 +207,32 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
         </div>
       </section>
 
-      {/* Tendência ---------------------------------------------------------
-          The goal card that used to sit beside this is gone: the banner at the
-          top of the page states the same target, and showing it twice made the
-          screen look like two different sources of truth. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Faturamento e lucro</CardTitle>
-          <CardDescription>Últimos 12 meses</CardDescription>
-          <CardAction>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/reports">Relatórios</Link>
-            </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          <RevenueChart data={monthlySeries} granularity="month" />
-        </CardContent>
-      </Card>
+      {/* Tendência do ano ---------------------------------------------------
+          Units, not money. Revenue and profit already have three tiles above
+          and a page of their own under /reports; what this position answers is
+          the simpler question of which months actually moved cars. */}
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h2 className="text-xl font-semibold tracking-[-0.02em]">
+            Tendência do ano
+          </h2>
+          <p className="text-muted-foreground text-sm">vendas mês a mês</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Vendas no ano</CardTitle>
+            <CardAction>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/reports">Relatórios</Link>
+              </Button>
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <YearSalesChart data={monthlySeries} />
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Operational panels ------------------------------------------------ */}
       <div className="grid gap-4 lg:grid-cols-3">
