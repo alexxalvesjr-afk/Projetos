@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/card";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { TopSellersCard } from "@/components/dashboard/top-sellers-card";
-import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { AgendaCard, FollowUpsCard } from "@/components/dashboard/agenda-card";
 
 export const metadata: Metadata = {
@@ -70,7 +69,6 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
     dailySeries,
     goal,
     topSellers,
-    recentActivity,
     upcoming,
     followUps,
   } = data;
@@ -220,11 +218,7 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
         <FollowUpsCard items={followUps} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ActivityFeed items={recentActivity} />
-        </div>
-
+      <div className="grid gap-4">
         {/* Quick actions */}
         <Card>
           <CardHeader>

@@ -51,7 +51,6 @@ export async function getDashboardData(
     topSellers,
     goal,
     followUps,
-    recentActivity,
     openTasks,
     upcoming,
   ] = await Promise.all([
@@ -82,15 +81,6 @@ export async function getDashboardData(
 
     leadRepository.dueFollowUps(org, scopeId, 6),
 
-    db.leadActivity.findMany({
-      where: { organizationId: org },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: {
-        user: { select: { id: true, name: true, image: true } },
-        lead: { select: { id: true, name: true } },
-      },
-    }),
 
     db.task.count({
       where: {
@@ -131,7 +121,6 @@ export async function getDashboardData(
     topSellers,
     goal,
     followUps,
-    recentActivity,
     openTasks,
     upcoming,
   };
