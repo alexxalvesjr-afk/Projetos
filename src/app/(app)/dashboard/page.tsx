@@ -21,6 +21,10 @@ import { MarginAlert } from "@/components/dashboard/margin-alert";
 import { PeriodFilter } from "@/components/dashboard/period-filter";
 import { SalesKpi } from "@/components/dashboard/sales-kpi";
 import { InvestedCard, FunnelNowCard } from "@/components/dashboard/store-now";
+import {
+  OldestStockCard,
+  TurnoverGauge,
+} from "@/components/dashboard/turnover";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -64,6 +68,7 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
     salesPrevious,
     monthSales,
     stock,
+    turnover,
     leads,
     monthlySeries,
     dailySeries,
@@ -189,6 +194,16 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
           ) : null}
 
           <FunnelNowCard stages={funnelStages} openCount={leads.open} />
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+          <TurnoverGauge
+            averageDays={turnover.averageDays}
+            onTime={turnover.onTime}
+            stalled={turnover.stalled}
+            over90={turnover.over90}
+          />
+          <OldestStockCard vehicles={turnover.oldest} />
         </div>
       </section>
 

@@ -479,6 +479,67 @@ export const metricsRepository = {
     }));
   },
 
+  /**
+   * Stock-turnover health, plus the units dragging it down.
+   *
+   * One pass for the summary and one for the offenders, because the dashboard
+   * shows both side by side and a second round trip per card would double the
+   * page's database time for data that is always rendered together.
+   *
+   * "Parado" starts at 60 days rather than 90 to match `agingBand`: a unit in
+   * the watch band is already costing money, and a card that only flags the
+   * 90-day cases tells the owner once it is too late to act cheaply.
+   */
+  async stockTurnover(organizationId: string, topCount = 6) {
+    const [summary, oldest] = await Promise.all([
+      db.$queryRaw<
+        { total: bigint; avg_days: number | null; stalled: bigint; over90: bigint }[]
+      >(Prisma.sql`
+        SELECT
+          COUNT(*)                                                          AS total,
+          AVG(EXTRACT(EPOCH FROM (NOW() - "purchasedAt")) / 86400)          AS avg_days,
+          COUNT(*) FILTER (WHERE NOW() - "purchasedAt" > INTERVAL '60 days') AS stalled,
+          COUNT(*) FILTER (WHERE NOW() - "purchasedAt" > INTERVAL '90 days') AS over90
+        FROM "Vehicle"
+        WHERE "organizationId" = ${organizationId}
+          AND "status" IN ('AVAILABLE', 'RESERVED', 'PENDING')
+      `),
+      db.vehicle.findMany({
+        where: {
+          organizationId,
+          status: { in: ["AVAILABLE", "RESERVED", "PENDING"] },
+        },
+        orderBy: { purchasedAt: "asc" },
+        take: topCount,
+        select: {
+          id: true,
+          brand: true,
+          model: true,
+          version: true,
+          year: true,
+          modelYear: true,
+          mileage: true,
+          priceCents: true,
+          purchasedAt: true,
+        },
+      }),
+    ]);
+
+    const row = summary[0];
+    const total = Number(row?.total ?? 0);
+    const stalled = Number(row?.stalled ?? 0);
+
+    return {
+      total,
+      /** Mean days on the floor, rounded — the headline of the gauge. */
+      averageDays: Math.round(Number(row?.avg_days ?? 0)),
+      stalled,
+      onTime: Math.max(total - stalled, 0),
+      over90: Number(row?.over90 ?? 0),
+      oldest,
+    };
+  },
+
   /** Marketing spend aggregated across campaigns for ROI/ROAS. */
   async marketingSummary(organizationId: string, period: Period) {
     const rows = await db.$queryRaw<

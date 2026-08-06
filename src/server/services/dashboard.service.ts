@@ -44,6 +44,7 @@ export async function getDashboardData(
     salesPrevious,
     monthSales,
     stock,
+    turnover,
     leads,
     leadsPrevious,
     monthlySeries,
@@ -58,6 +59,7 @@ export async function getDashboardData(
     metricsRepository.salesSummary(org, previous, scopeId),
     metricsRepository.salesSummary(org, month, scopeId),
     metricsRepository.stockSummary(org),
+    metricsRepository.stockTurnover(org, 6),
     metricsRepository.leadSummary(org, current, scopeId),
     metricsRepository.leadSummary(org, previous, scopeId),
     metricsRepository.salesTimeSeries(
@@ -114,6 +116,7 @@ export async function getDashboardData(
     salesPrevious,
     monthSales,
     stock,
+    turnover,
     leads,
     leadsPrevious,
     monthlySeries,
