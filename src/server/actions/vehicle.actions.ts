@@ -1,12 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { ConflictError, NotFoundError } from "@/lib/errors";
 import { createAction } from "@/lib/safe-action";
 import { normaliseText } from "@/lib/sanitize";
+import { triggerExternalSiteRebuild } from "@/lib/external-site";
 import { buildVehicleSlug } from "@/lib/domain/vehicle";
 import {
   vehicleDeleteSchema,
@@ -30,6 +32,11 @@ async function revalidateVehicle(organizationSlug: string, vehicleSlug?: string)
   if (vehicleSlug) {
     revalidatePath(`/loja/${organizationSlug}/veiculo/${vehicleSlug}`);
   }
+
+  // A dealership may also run a site of its own that reads the public feed at
+  // build time. `after` runs this once the response is already on its way, so
+  // waiting on Netlify never shows up as a slow save.
+  after(() => triggerExternalSiteRebuild(`estoque de ${organizationSlug}`));
 }
 
 /** Generates a storefront slug that is unique inside the tenant. */
