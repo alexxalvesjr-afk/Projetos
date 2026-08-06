@@ -7,6 +7,7 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   closestCorners,
   useDroppable,
   useSensor,
@@ -36,10 +37,12 @@ function Column({
   stage,
   leads,
   isOver,
+  onMove,
 }: {
   stage: (typeof PIPELINE_STAGES)[number];
   leads: LeadCardData[];
   isOver: boolean;
+  onMove: (leadId: string, to: LeadStage) => void;
 }) {
   const { setNodeRef } = useDroppable({ id: stage.id });
 
@@ -85,7 +88,7 @@ function Column({
         >
           <ul className="space-y-2.5">
             {leads.map((lead) => (
-              <LeadCard key={lead.id} lead={lead} />
+              <LeadCard key={lead.id} lead={lead} onMove={onMove} />
             ))}
           </ul>
         </SortableContext>
@@ -117,7 +120,14 @@ export function KanbanBoard({ initial }: { initial: Columns }) {
   React.useEffect(() => setColumns(initial), [initial]);
 
   const sensors = useSensors(
+    // 6px of travel before a drag begins, so a plain click still opens the
+    // lead now that the whole card is a drag handle.
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    // Touch needs a hold instead of a distance: the board scrolls sideways, and
+    // a distance threshold would turn every swipe into a dropped card.
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 220, tolerance: 8 },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -143,41 +153,37 @@ export function KanbanBoard({ initial }: { initial: Columns }) {
     setActiveId(String(event.active.id));
   }
 
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    setActiveId(null);
-    setOverStage(null);
-    if (!over) return;
-
-    const leadId = String(active.id);
+  /**
+   * Applies a move optimistically and mirrors it to the server.
+   *
+   * Shared by the drag handler and the per-card "Mover" menu so both paths
+   * produce the same ordering and the same rollback — two copies of this logic
+   * would drift, and the one that drifts is always the one nobody tests.
+   *
+   * `beforeId` places the card above an existing one; omit it to append.
+   */
+  async function commitMove(leadId: string, to: LeadStage, beforeId?: string) {
     const from = findStage(leadId);
     if (!from) return;
-
-    // `over` is either a column (empty space) or another card.
-    const overId = String(over.id);
-    const to = (PIPELINE_STAGES.some((s) => s.id === overId)
-      ? overId
-      : findStage(overId)) as LeadStage | null;
-    if (!to) return;
 
     const snapshot = columns;
     const moving = columns[from].find((lead) => lead.id === leadId);
     if (!moving) return;
 
-    // Compute the destination order locally, then mirror it to the server.
     const source = columns[from].filter((lead) => lead.id !== leadId);
     const targetList = from === to ? source : [...columns[to]];
 
-    const overIndex = targetList.findIndex((lead) => lead.id === overId);
+    const overIndex = beforeId
+      ? targetList.findIndex((lead) => lead.id === beforeId)
+      : -1;
     const insertAt = overIndex === -1 ? targetList.length : overIndex;
     targetList.splice(insertAt, 0, { ...moving, stage: to });
 
-    const next: Columns = {
+    setColumns({
       ...columns,
       [from]: from === to ? targetList : source,
       [to]: targetList,
-    };
-    setColumns(next);
+    });
 
     const result = await moveLead({
       id: leadId,
@@ -196,6 +202,23 @@ export function KanbanBoard({ initial }: { initial: Columns }) {
       toast.success(`${moving.name} movido para ${label}.`);
     }
     router.refresh();
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    setActiveId(null);
+    setOverStage(null);
+    if (!over) return;
+
+    const leadId = String(active.id);
+    // `over` is either a column (empty space) or another card.
+    const overId = String(over.id);
+    const to = (PIPELINE_STAGES.some((s) => s.id === overId)
+      ? overId
+      : findStage(overId)) as LeadStage | null;
+    if (!to) return;
+
+    await commitMove(leadId, to, overId === to ? undefined : overId);
   }
 
   return (
@@ -225,6 +248,7 @@ export function KanbanBoard({ initial }: { initial: Columns }) {
             key={stage.id}
             stage={stage}
             leads={columns[stage.id] ?? []}
+            onMove={(leadId, to) => void commitMove(leadId, to)}
             isOver={overStage === stage.id}
           />
         ))}
