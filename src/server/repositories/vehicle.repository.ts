@@ -22,6 +22,8 @@ export type VehicleFilters = {
   assignedToId?: string;
   featured?: boolean;
   publishedOnly?: boolean;
+  /** Only units with no floor price — the ones a salesperson cannot discount. */
+  withoutMargin?: boolean;
 };
 
 export type VehicleSort =
@@ -103,6 +105,12 @@ function buildWhere(
   if (filters.assignedToId) where.assignedToId = filters.assignedToId;
   if (filters.featured !== undefined) where.featured = filters.featured;
   if (filters.publishedOnly) where.published = true;
+  // Mirrors the dashboard's alert count, so "Resolver agora" lands on exactly
+  // the units it was counting rather than the whole floor.
+  if (filters.withoutMargin) {
+    where.minPriceCents = { lte: 0 };
+    where.status = { in: ["AVAILABLE", "RESERVED"] };
+  }
 
   if (filters.minPriceCents != null || filters.maxPriceCents != null) {
     where.priceCents = {

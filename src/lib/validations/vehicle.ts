@@ -146,6 +146,7 @@ export const vehicleFilterSchema = z.object({
   minYear: z.coerce.number().optional(),
   maxYear: z.coerce.number().optional(),
   maxMileage: z.coerce.number().optional(),
+  margem: z.enum(["pendente"]).optional(),
   sort: z
     .enum([
       "recent",

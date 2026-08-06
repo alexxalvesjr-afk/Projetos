@@ -69,6 +69,7 @@ async function InventoryList({
     minYear: params.minYear,
     maxYear: params.maxYear,
     maxMileage: params.maxMileage,
+    withoutMargin: params.margem === "pendente",
   };
 
   const [result, brands, stock] = await Promise.all([
