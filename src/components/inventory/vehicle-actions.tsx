@@ -29,19 +29,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { dealerSiteStockUrl } from "@/lib/dealer-site";
 
 export function VehicleActions({
   vehicleId,
-  vehicleSlug,
-  organizationSlug,
   status,
   published,
   canUpdate,
   canDelete,
 }: {
   vehicleId: string;
-  vehicleSlug: string;
-  organizationSlug: string;
   status: VehicleStatus;
   published: boolean;
   canUpdate: boolean;
@@ -126,12 +123,12 @@ export function VehicleActions({
 
           <DropdownMenuItem asChild disabled={!published || status === "SOLD"}>
             <Link
-              href={`/loja/${organizationSlug}/veiculo/${vehicleSlug}`}
+              href={dealerSiteStockUrl()}
               target="_blank"
               rel="noopener noreferrer"
             >
               <ExternalLink />
-              Ver anúncio no site
+              Ver no site
             </Link>
           </DropdownMenuItem>
 

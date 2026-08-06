@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/loja/"],
+      allow: ["/"],
       // The authenticated application holds commercial data and must never be
       // indexed, regardless of any accidental public link.
       disallow: [

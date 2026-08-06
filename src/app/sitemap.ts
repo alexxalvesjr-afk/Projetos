@@ -1,79 +1,13 @@
 import type { MetadataRoute } from "next";
 
-import { db } from "@/lib/db";
-
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
 /**
- * Generated from live data, so a newly published vehicle is discoverable on the
- * next crawl and a sold one drops out of the index automatically.
+ * Este domínio hospeda apenas o CRM, que é privado por inteiro.
+ *
+ * O site público da revenda mora fora daqui e publica o próprio sitemap; listar
+ * URLs deste domínio só gastaria orçamento de rastreamento em páginas que
+ * redirecionam para a tela de login. Um sitemap vazio é a resposta honesta, e
+ * mantê-lo (em vez de apagar o arquivo) evita um 404 para quem já o indexou.
  */
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // The root now redirects to the sign-in screen, so it is deliberately absent:
-  // listing a URL that 307s to a private page only wastes crawl budget. Only
-  // the public storefronts belong in here.
-  const entries: MetadataRoute.Sitemap = [];
-
-  try {
-    const stores = await db.organization.findMany({
-      where: { websiteSettings: { published: true } },
-      select: {
-        slug: true,
-        updatedAt: true,
-        vehicles: {
-          where: { published: true, status: { in: ["AVAILABLE", "RESERVED"] } },
-          select: { slug: true, updatedAt: true },
-        },
-        pages: {
-          where: { published: true },
-          select: { slug: true, updatedAt: true },
-        },
-      },
-    });
-
-    for (const store of stores) {
-      entries.push(
-        {
-          url: `${BASE}/loja/${store.slug}`,
-          lastModified: store.updatedAt,
-          changeFrequency: "daily",
-          priority: 0.9,
-        },
-        {
-          url: `${BASE}/loja/${store.slug}/estoque`,
-          lastModified: store.updatedAt,
-          changeFrequency: "daily",
-          priority: 0.8,
-        },
-      );
-
-      for (const vehicle of store.vehicles) {
-        entries.push({
-          url: `${BASE}/loja/${store.slug}/veiculo/${vehicle.slug}`,
-          lastModified: vehicle.updatedAt,
-          changeFrequency: "weekly",
-          priority: 0.7,
-        });
-      }
-
-      for (const page of store.pages) {
-        entries.push({
-          url: `${BASE}/loja/${store.slug}/${page.slug}`,
-          lastModified: page.updatedAt,
-          changeFrequency: "monthly",
-          priority: 0.5,
-        });
-      }
-    }
-  } catch {
-    // A database hiccup — including an empty, not-yet-seeded one right after
-    // a first deploy — must not make the sitemap 500 and poison the crawl.
-    // `console.warn`, not `.error`: this is expected, recoverable behaviour,
-    // not a fault to flag in a build's error count.
-    console.warn(
-      "[sitemap] database unreachable or unseeded; returning an empty sitemap",
-    );
-  }
-
-  return entries;
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [];
 }

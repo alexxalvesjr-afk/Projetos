@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { OrganizationForm } from "@/components/settings/organization-form";
+import { dealerSiteUrl } from "@/lib/dealer-site";
 
 export const metadata: Metadata = {
   title: "Configurações",
@@ -25,7 +26,6 @@ export default async function SettingsPage() {
   if (!organization) notFound();
 
   const canEdit = hasPermission(user.role, "settings:update");
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   return (
     <div className="space-y-6">
@@ -54,7 +54,7 @@ export default async function SettingsPage() {
           server action, which will reject the mutation anyway. */}
       <fieldset disabled={!canEdit} className="contents">
         <OrganizationForm
-          storeUrl={`${appUrl}/loja/${organization.slug}`}
+          storeUrl={dealerSiteUrl()}
           defaults={{
             name: organization.name,
             legalName: organization.legalName ?? "",

@@ -141,8 +141,6 @@ export default async function VehicleDetailPage({
         >
           <VehicleActions
             vehicleId={vehicle.id}
-            vehicleSlug={vehicle.slug}
-            organizationSlug={user.organizationSlug}
             status={vehicle.status}
             published={vehicle.published}
             canUpdate={canUpdate}

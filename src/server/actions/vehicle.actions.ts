@@ -20,18 +20,12 @@ import {
 import { vehicleRepository } from "@/server/repositories/vehicle.repository";
 
 /**
- * The storefront and the back office read the same rows, so any mutation has to
- * invalidate both. Centralised here to guarantee a change is never visible in
- * one place but stale in the other.
+ * O site da revenda é externo e lê o estoque pelo feed público, então aqui só
+ * resta invalidar as telas internas e avisar o site de que algo mudou.
  */
-async function revalidateVehicle(organizationSlug: string, vehicleSlug?: string) {
+async function revalidateVehicle(organizationSlug: string) {
   revalidatePath("/inventory");
   revalidatePath("/dashboard");
-  revalidatePath(`/loja/${organizationSlug}`);
-  revalidatePath(`/loja/${organizationSlug}/estoque`);
-  if (vehicleSlug) {
-    revalidatePath(`/loja/${organizationSlug}/veiculo/${vehicleSlug}`);
-  }
 
   // A dealership may also run a site of its own that reads the public feed at
   // build time. `after` runs this once the response is already on its way, so
@@ -114,7 +108,7 @@ export const createVehicle = createAction({
       select: { id: true, slug: true },
     });
 
-    await revalidateVehicle(ctx.user.organizationSlug, vehicle.slug);
+    await revalidateVehicle(ctx.user.organizationSlug);
     return vehicle;
   },
 });
@@ -174,10 +168,7 @@ export const updateVehicle = createAction({
       }
     });
 
-    await revalidateVehicle(ctx.user.organizationSlug, slug);
-    if (slug !== existing.slug) {
-      await revalidateVehicle(ctx.user.organizationSlug, existing.slug);
-    }
+    await revalidateVehicle(ctx.user.organizationSlug);
 
     return { id: existing.id, slug };
   },
@@ -198,7 +189,7 @@ export const updateVehicleStatus = createAction({
     );
     if (!updated) throw new NotFoundError("Veículo");
 
-    await revalidateVehicle(ctx.user.organizationSlug, updated.slug);
+    await revalidateVehicle(ctx.user.organizationSlug);
     return { id: input.id, status: input.status };
   },
 });
@@ -222,7 +213,7 @@ export const deleteVehicle = createAction({
     }
 
     await vehicleRepository.delete(ctx.user.organizationId, input.id);
-    await revalidateVehicle(ctx.user.organizationSlug, existing.slug);
+    await revalidateVehicle(ctx.user.organizationSlug);
     return { id: input.id };
   },
 });

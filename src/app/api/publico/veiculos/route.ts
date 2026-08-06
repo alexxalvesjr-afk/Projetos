@@ -15,9 +15,9 @@ export const dynamic = "force-dynamic";
 /**
  * Read-only inventory feed for a dealership's own website.
  *
- * The storefront this app serves at /loja/[slug] is one consumer of the stock;
- * this is the other one, for a site built and hosted somewhere else. Publishing
- * a vehicle in the CRM is the single action that puts it on both.
+ * This CRM serves no storefront of its own: the dealership's public site is
+ * built and hosted elsewhere and reads its stock from here. Publishing a
+ * vehicle in the CRM is the single action that puts it on that site.
  *
  * Two rules govern what leaves the building. It only ever returns units that
  * are `published` and still on the floor, so a sold car disappears from an
@@ -28,9 +28,9 @@ export const dynamic = "force-dynamic";
  */
 
 const CORS = {
-  // Public data — the same rows this app already renders as HTML at
-  // /loja/[slug]. Restricting the origin would only oblige every dealership to
-  // register a domain before their own site could read their own stock.
+  // Public data — exactly what the dealership already shows to buyers.
+  // Restricting the origin would only oblige every dealership to register a
+  // domain before their own site could read their own stock.
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
@@ -133,10 +133,6 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const origin =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ??
-    request.nextUrl.origin;
-
   return NextResponse.json(
     {
       loja: {
@@ -187,7 +183,6 @@ export async function GET(request: NextRequest) {
           vehicle.images[0]?.url ??
           null,
         fotos: vehicle.images.map((image) => image.url),
-        url: `${origin}/loja/${organization.slug}/veiculo/${vehicle.slug}`,
         publicadoEm: vehicle.createdAt.toISOString(),
       })),
     },

@@ -15,8 +15,7 @@ import {
   userUpdateSchema,
 } from "@/lib/validations/settings";
 
-function revalidateSite(slug: string) {
-  revalidatePath(`/loja/${slug}`, "layout");
+function revalidateSite() {
   revalidatePath("/settings");
 }
 
@@ -51,7 +50,7 @@ export const updateOrganization = createAction({
       },
     });
 
-    revalidateSite(ctx.user.organizationSlug);
+    revalidateSite();
     return { id: ctx.user.organizationId };
   },
 });

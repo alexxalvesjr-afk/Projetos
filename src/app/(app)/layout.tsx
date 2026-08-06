@@ -49,7 +49,6 @@ export default async function AppLayout({
             role: user.role,
           }}
           organizationName={user.organizationName}
-          organizationSlug={user.organizationSlug}
           notifications={notifications}
         />
 
