@@ -98,6 +98,28 @@ export const LEAD_SOURCE_LABELS: Record<LeadSource, string> = {
   OTHER: "Outro",
 };
 
+/**
+ * How the lead arrived, written as the event rather than the channel name.
+ *
+ * "Site" is a taxonomy entry; "Entrou no site da loja" is what happened, and
+ * on a pipeline card — where the salesperson is deciding how to open the
+ * conversation — knowing someone clicked an ad is different information from
+ * knowing they walked through the door.
+ */
+export const LEAD_ORIGIN_PHRASES: Record<LeadSource, string> = {
+  WEBSITE: "Entrou no site da loja",
+  WHATSAPP: "Chamou no WhatsApp",
+  PHONE: "Ligou para a loja",
+  WALK_IN: "Apareceu na loja",
+  INSTAGRAM: "Veio pelo Instagram",
+  FACEBOOK: "Veio pelo Facebook",
+  GOOGLE_ADS: "Veio de anúncio no Google",
+  META_ADS: "Veio de anúncio no Facebook",
+  REFERRAL: "Veio por indicação",
+  MARKETPLACE: "Veio de marketplace",
+  OTHER: "Origem não informada",
+};
+
 export const TEMPERATURE_LABELS: Record<LeadTemperature, string> = {
   COLD: "Frio",
   WARM: "Morno",
