@@ -1,3 +1,19 @@
+<!-- Estoque Mypremium — cole isto em Netlify → Post processing → Snippet injection
+     (opção "Insert before </body>"). Não precisa mexer em nenhum arquivo. -->
+<style>
+  #estoque-mypremium .mp-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;max-width:1200px;margin:0 auto}
+  #estoque-mypremium .mp-card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;overflow:hidden;color:#111}
+  #estoque-mypremium .mp-card__foto{position:relative;aspect-ratio:4/3;background:#eee}
+  #estoque-mypremium .mp-card__foto img{width:100%;height:100%;object-fit:cover;display:block}
+  #estoque-mypremium .mp-selo{position:absolute;top:8px;left:8px;background:#111;color:#fff;font-size:11px;padding:2px 8px;border-radius:99px}
+  #estoque-mypremium .mp-card__corpo{padding:12px}
+  #estoque-mypremium .mp-card__titulo{font-size:15px;margin:0 0 4px}
+  #estoque-mypremium .mp-card__ficha{font-size:12px;color:#666;margin:0 0 8px}
+  #estoque-mypremium .mp-card__preco{font-size:18px;font-weight:700;margin:0 0 10px}
+  #estoque-mypremium .mp-card__zap{display:inline-block;background:#128c7e;color:#fff;text-decoration:none;font-size:13px;padding:6px 10px;border-radius:8px}
+  #estoque-mypremium .mp-estado{text-align:center;color:#666;padding:24px}
+</style>
+<script>
 /**
  * Estoque Mypremium — carrega os carros do CRM neste site.
  *
@@ -179,3 +195,4 @@
       console.error("[estoque-mypremium]", erro);
     });
 })();
+</script>
