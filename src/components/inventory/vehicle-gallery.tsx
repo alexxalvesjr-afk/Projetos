@@ -3,14 +3,17 @@
 import * as React from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { Camera, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { PhotoPlaceholder } from "@/components/inventory/showroom-card";
 
 /**
- * Lightbox-free gallery: a large stage plus a thumbnail rail. Arrow keys work
- * when the stage has focus, and the direction of travel drives the slide
- * animation so navigation reads spatially.
+ * A galeria do anúncio: palco grande, contador e uma grade de miniaturas.
+ *
+ * As setas ficam sempre visíveis, como no site — escondê-las até o mouse
+ * passar por cima economiza pixels e custa a descoberta, e em tela de toque
+ * não há "passar por cima". As teclas de seta funcionam com o palco em foco.
  */
 export function VehicleGallery({
   images,
@@ -33,10 +36,9 @@ export function VehicleGallery({
 
   if (images.length === 0) {
     return (
-      <div className="bg-muted text-muted-foreground flex aspect-16/10 items-center justify-center rounded-xl border">
-        <div className="flex flex-col items-center gap-2">
-          <Camera className="size-8" strokeWidth={1.5} />
-          <p className="text-sm">Nenhuma foto cadastrada</p>
+      <div className="bg-card ring-border/70 overflow-hidden rounded-2xl p-3 ring-1">
+        <div className="aspect-4/3 overflow-hidden rounded-xl">
+          <PhotoPlaceholder />
         </div>
       </div>
     );
@@ -45,7 +47,7 @@ export function VehicleGallery({
   const current = images[index];
 
   return (
-    <div className="space-y-3">
+    <div className="bg-card ring-border/70 space-y-3 rounded-2xl p-3 ring-1">
       <div
         tabIndex={0}
         role="group"
@@ -54,7 +56,7 @@ export function VehicleGallery({
           if (event.key === "ArrowRight") go(index + 1);
           if (event.key === "ArrowLeft") go(index - 1);
         }}
-        className="group bg-muted relative aspect-16/10 overflow-hidden rounded-xl border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="focus-visible:ring-ring relative aspect-4/3 overflow-hidden rounded-xl bg-neutral-100 focus-visible:ring-2 focus-visible:outline-none dark:bg-neutral-900"
       >
         <AnimatePresence initial={false} custom={direction} mode="popLayout">
           <motion.div
@@ -71,7 +73,7 @@ export function VehicleGallery({
               alt={current.alt ?? alt}
               fill
               priority
-              sizes="(max-width: 1024px) 100vw, 60vw"
+              sizes="(max-width: 1024px) 100vw, 55vw"
               className="object-cover"
             />
           </motion.div>
@@ -83,7 +85,7 @@ export function VehicleGallery({
               type="button"
               onClick={() => go(index - 1)}
               aria-label="Foto anterior"
-              className="glass-strong absolute top-1/2 left-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full opacity-0 shadow-md transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+              className="bg-background/90 text-foreground hover:bg-background absolute top-1/2 left-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors"
             >
               <ChevronLeft className="size-4.5" />
             </button>
@@ -91,20 +93,20 @@ export function VehicleGallery({
               type="button"
               onClick={() => go(index + 1)}
               aria-label="Próxima foto"
-              className="glass-strong absolute top-1/2 right-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full opacity-0 shadow-md transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+              className="bg-background/90 text-foreground hover:bg-background absolute top-1/2 right-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors"
             >
               <ChevronRight className="size-4.5" />
             </button>
-
-            <span className="glass-strong absolute right-3 bottom-3 rounded-md px-2 py-0.5 text-xs font-medium tabular-nums">
-              {index + 1} / {images.length}
-            </span>
           </>
         ) : null}
+
+        <span className="bg-foreground/80 text-background absolute bottom-3 left-3 rounded-full px-2.5 py-1 text-xs font-medium tabular-nums backdrop-blur-sm">
+          {index + 1} / {images.length}
+        </span>
       </div>
 
       {images.length > 1 ? (
-        <ul className="scrollbar-thin flex gap-2 overflow-x-auto pb-1">
+        <ul className="grid grid-cols-4 gap-2 sm:grid-cols-6">
           {images.map((image, i) => (
             <li key={image.id}>
               <button
@@ -113,17 +115,17 @@ export function VehicleGallery({
                 aria-label={`Ver foto ${i + 1}`}
                 aria-current={i === index}
                 className={cn(
-                  "relative size-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all",
+                  "relative aspect-4/3 w-full overflow-hidden rounded-lg border-2 bg-neutral-100 transition-all dark:bg-neutral-900",
                   i === index
-                    ? "border-primary opacity-100"
-                    : "border-transparent opacity-60 hover:opacity-100",
+                    ? "border-primary"
+                    : "border-transparent opacity-70 hover:opacity-100",
                 )}
               >
                 <Image
                   src={image.url}
                   alt=""
                   fill
-                  sizes="64px"
+                  sizes="120px"
                   className="object-cover"
                 />
               </button>

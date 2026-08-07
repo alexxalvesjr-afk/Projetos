@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, type Control } from "react-hook-form";
 import { Check, Save, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,6 +12,8 @@ import {
   ACCESSORY_OPTIONS,
   BODY_TYPE_LABELS,
   FUEL_LABELS,
+  STEERING_OPTIONS,
+  TRACTION_OPTIONS,
   TRANSMISSION_LABELS,
   VEHICLE_STATUS_LABELS,
 } from "@/lib/domain/vehicle";
@@ -51,6 +53,65 @@ import { ProfitSummary } from "@/components/inventory/profit-summary";
 
 type SellerOption = { id: string; name: string };
 
+/** Campos da ficha técnica que guardam um número inteiro. */
+type MeasureField =
+  | "horsepower"
+  | "seats"
+  | "valvesPerCylinder"
+  | "fuelTankLiters"
+  | "wheelbaseMm"
+  | "lengthMm"
+  | "widthMm"
+  | "heightMm";
+
+/**
+ * Um número opcional da ficha técnica.
+ *
+ * `<input type="number">` entrega string, e `Number("")` é 0 — o que gravaria
+ * "0 cv" em todo carro cujo dono não sabia a potência. Campo vazio vira null,
+ * e a linha desaparece do anúncio em vez de mentir.
+ */
+function NumberField({
+  control,
+  name,
+  label,
+  placeholder,
+}: {
+  control: Control<VehicleInput>;
+  name: MeasureField;
+  label: string;
+  placeholder?: string;
+}) {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input
+              type="number"
+              inputMode="numeric"
+              placeholder={placeholder}
+              // `field` primeiro: leva o name e o ref, e é o ref que faz o
+              // formulário rolar até o campo errado quando a validação falha.
+              {...field}
+              value={field.value ?? ""}
+              onChange={(event) =>
+                field.onChange(
+                  event.target.value === "" ? null : Number(event.target.value),
+                )
+              }
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
 export function VehicleForm({
   vehicle,
   sellers,
@@ -89,6 +150,17 @@ export function VehicleForm({
       engine: "",
       plate: "",
       vin: "",
+      armored: false,
+      steering: "",
+      traction: "",
+      horsepower: null,
+      seats: null,
+      valvesPerCylinder: null,
+      fuelTankLiters: null,
+      wheelbaseMm: null,
+      lengthMm: null,
+      widthMm: null,
+      heightMm: null,
       description: "",
       accessories: [],
       costCents: 0,
@@ -397,11 +469,165 @@ export function VehicleForm({
                         />
                       </FormControl>
                       <FormDescription>
-                        Uso interno — não aparece no site.
+                        Só o último dígito aparece no anúncio.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="armored"
+                  render={({ field }) => (
+                    <FormItem className="flex-row items-center justify-between rounded-lg border p-3 sm:col-span-2">
+                      <div className="space-y-0.5 pr-3">
+                        <FormLabel>Blindado</FormLabel>
+                        <FormDescription>
+                          Exibe o selo vermelho “Blindado” no anúncio.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Ficha técnica</CardTitle>
+                <CardDescription>
+                  Opcional. Cada campo preenchido vira uma linha da ficha no
+                  anúncio; os vazios simplesmente não aparecem.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="engine"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Motor</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="3.0 V6 Biturbo"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="steering"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Direção</FormLabel>
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {STEERING_OPTIONS.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="traction"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tração</FormLabel>
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {TRACTION_OPTIONS.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <NumberField
+                  control={form.control}
+                  name="horsepower"
+                  label="Potência (cv)"
+                  placeholder="360"
+                />
+                <NumberField
+                  control={form.control}
+                  name="seats"
+                  label="Quantidade de pessoas"
+                  placeholder="5"
+                />
+                <NumberField
+                  control={form.control}
+                  name="valvesPerCylinder"
+                  label="Válvulas por cilindro"
+                  placeholder="4"
+                />
+                <NumberField
+                  control={form.control}
+                  name="fuelTankLiters"
+                  label="Tanque de combustível (L)"
+                  placeholder="75"
+                />
+                <NumberField
+                  control={form.control}
+                  name="wheelbaseMm"
+                  label="Distância entre eixos (mm)"
+                  placeholder="2807"
+                />
+                <NumberField
+                  control={form.control}
+                  name="lengthMm"
+                  label="Comprimento (mm)"
+                  placeholder="4681"
+                />
+                <NumberField
+                  control={form.control}
+                  name="widthMm"
+                  label="Largura (mm)"
+                  placeholder="1923"
+                />
+                <NumberField
+                  control={form.control}
+                  name="heightMm"
+                  label="Altura (mm)"
+                  placeholder="1624"
                 />
               </CardContent>
             </Card>

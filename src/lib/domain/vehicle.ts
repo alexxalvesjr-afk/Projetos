@@ -5,7 +5,7 @@ import type {
   VehicleStatus,
 } from "@prisma/client";
 
-import { formatModelYear, formatMileage } from "@/lib/format";
+import { formatCurrency, formatModelYear, formatMileage } from "@/lib/format";
 import { slugify } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -60,6 +60,21 @@ export const BODY_TYPE_LABELS: Record<BodyType, string> = {
   MINIVAN: "Minivan",
   VAN: "Van",
 };
+
+/** Opções de direção e tração oferecidas na ficha técnica do cadastro. */
+export const STEERING_OPTIONS = [
+  "Elétrica",
+  "Hidráulica",
+  "Eletro-hidráulica",
+  "Mecânica",
+] as const;
+
+export const TRACTION_OPTIONS = [
+  "Dianteira",
+  "Traseira",
+  "Integral (AWD)",
+  "4x4",
+] as const;
 
 /** Curated accessory catalogue offered as toggles on the vehicle form. */
 export const ACCESSORY_OPTIONS = [
@@ -154,6 +169,17 @@ export type VehicleNameParts = {
 
 export function vehicleTitle(v: VehicleNameParts): string {
   return [v.brand, v.model, v.version].filter(Boolean).join(" ");
+}
+
+/**
+ * Preço como o anúncio o mostra.
+ *
+ * Um carro recém-cadastrado entra com preço zero até alguém precificá-lo, e
+ * "R$ 0,00" numa vitrine parece defeito. "Sob consulta" é o que o site já
+ * escreve nesse caso, e é também um convite a ligar — não um erro.
+ */
+export function publicPrice(priceCents: number): string {
+  return priceCents > 0 ? formatCurrency(priceCents) : "Sob consulta";
 }
 
 export function vehicleFullTitle(v: VehicleNameParts): string {

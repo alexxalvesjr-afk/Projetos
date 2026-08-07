@@ -187,6 +187,41 @@ export const vehicleRepository = {
     });
   },
 
+  /**
+   * Os outros carros à venda, para o rodapé da ficha.
+   *
+   * Traz só o que o card precisa desenhar. Vendidos e arquivados ficam de
+   * fora: o bloco se chama "Outros carros disponíveis" e precisa dizer a
+   * verdade — quem clica num carro vendido perde a viagem.
+   */
+  showroomPeers(organizationId: string, exceptId: string, take = 4) {
+    return db.vehicle.findMany({
+      where: {
+        organizationId,
+        id: { not: exceptId },
+        status: { in: ["AVAILABLE", "RESERVED"] },
+      },
+      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+      take,
+      select: {
+        id: true,
+        brand: true,
+        model: true,
+        version: true,
+        year: true,
+        mileage: true,
+        priceCents: true,
+        armored: true,
+        status: true,
+        images: {
+          orderBy: { position: "asc" },
+          take: 1,
+          select: { url: true, alt: true },
+        },
+      },
+    });
+  },
+
   findBySlug(organizationId: string, slug: string) {
     return db.vehicle.findFirst({
       where: { slug, organizationId },

@@ -362,6 +362,26 @@ model Vehicle {
   plate        String?
   vin          String?
 
+  /// Blindagem — vira o selo vermelho "BLINDADO" no anúncio, como no site.
+  armored Boolean @default(false)
+
+  /// Ficha técnica publicada no anúncio.
+  ///
+  /// Todos opcionais: o site só imprime a linha quando há valor, e obrigar o
+  /// lojista a preencher medidas de fábrica para cadastrar um carro atrasaria
+  /// o que importa, que é pôr o veículo à venda. Medidas em milímetros e
+  /// potência em cv, as unidades que o anúncio exibe.
+  steering          String?
+  traction          String?
+  horsepower        Int?
+  seats             Int?
+  valvesPerCylinder Int?
+  fuelTankLiters    Int?
+  wheelbaseMm       Int?
+  lengthMm          Int?
+  widthMm           Int?
+  heightMm          Int?
+
   description String?  @db.Text
   accessories String[] @default([])
 

@@ -20,9 +20,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InventoryFilters } from "@/components/inventory/inventory-filters";
 import {
-  VehicleCard,
-  VehicleCardSkeleton,
-} from "@/components/inventory/vehicle-card";
+  ShowroomCard,
+  ShowroomCardSkeleton,
+} from "@/components/inventory/showroom-card";
 import { VehicleTable } from "@/components/inventory/vehicle-table";
 
 export const metadata: Metadata = {
@@ -38,7 +38,7 @@ function GridSkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <VehicleCardSkeleton key={i} />
+        <ShowroomCardSkeleton key={i} />
       ))}
     </div>
   );
@@ -173,11 +173,7 @@ async function InventoryList({
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {result.items.map((vehicle) => (
-                <VehicleCard
-                  key={vehicle.id}
-                  vehicle={vehicle}
-                  showFinancials={showFinancials}
-                />
+                <ShowroomCard key={vehicle.id} vehicle={vehicle} />
               ))}
             </div>
           )}
@@ -205,7 +201,7 @@ export default async function InventoryPage({
     <div className="space-y-6">
       <PageHeader
         title="Estoque"
-        description="Todos os veículos da loja, com margem e tempo de giro à vista."
+        description="Os veículos da loja como aparecem no site. Margem e giro ficam na visão em tabela."
       >
         {hasPermission(user.role, "vehicle:create") ? (
           <Button asChild>

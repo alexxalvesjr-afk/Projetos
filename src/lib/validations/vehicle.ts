@@ -8,6 +8,21 @@ const cents = z
   .min(0, "Não pode ser negativo")
   .max(999_999_999, "Valor acima do limite");
 
+/**
+ * Um número de ficha técnica: opcional, inteiro e dentro de um teto plausível.
+ *
+ * O campo vazio precisa virar `null`, e não `0`: zero cavalos é um dado, nada
+ * digitado não é — e é essa diferença que decide se a linha aparece no anúncio.
+ */
+const measure = (max: number) =>
+  z
+    .number()
+    .int()
+    .min(0, "Não pode ser negativo")
+    .max(max, "Valor acima do limite")
+    .optional()
+    .nullable();
+
 export const vehicleImageSchema = z.object({
   id: z.string().optional(),
   url: z.string().url("URL inválida"),
@@ -82,6 +97,21 @@ export const vehicleSchema = z
       .optional()
       .or(z.literal("")),
     vin: z.string().max(24).trim().toUpperCase().optional().or(z.literal("")),
+
+    armored: z.boolean().default(false),
+
+    // Ficha técnica. Tudo opcional e sem `.min()`: o anúncio omite a linha em
+    // vez de mostrar um zero que ninguém digitou.
+    steering: z.string().max(30).trim().optional().or(z.literal("")),
+    traction: z.string().max(30).trim().optional().or(z.literal("")),
+    horsepower: measure(2000),
+    seats: measure(60),
+    valvesPerCylinder: measure(8),
+    fuelTankLiters: measure(500),
+    wheelbaseMm: measure(6000),
+    lengthMm: measure(15000),
+    widthMm: measure(4000),
+    heightMm: measure(5000),
 
     description: z.string().max(4000).optional().or(z.literal("")),
     accessories: z.array(z.string().max(60)).max(40).default([]),
