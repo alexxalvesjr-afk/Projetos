@@ -159,6 +159,11 @@ enum CampaignChannel {
   OTHER
 }
 
+enum AdProvider {
+  META_ADS
+  GOOGLE_ADS
+}
+
 enum CampaignStatus {
   DRAFT
   ACTIVE
@@ -236,6 +241,7 @@ model Organization {
   sales           Sale[]
   goals           Goal[]
   campaigns       Campaign[]
+  adConnections   AdAccountConnection[]
   notifications   Notification[]
   auditLogs       AuditLog[]
   testimonials    Testimonial[]
@@ -286,6 +292,7 @@ model User {
   achievements      Achievement[]
   notifications     Notification[]
   auditLogs         AuditLog[]
+  adConnections     AdAccountConnection[] @relation("AdConnectionConnectedBy")
 
   @@index([organizationId])
   @@index([organizationId, role])
@@ -714,6 +721,10 @@ model Campaign {
   metrics CampaignMetric[]
   leads   Lead[]
 
+  /// Chave da sincronização: uma campanha do provedor tem uma linha aqui.
+  /// `externalId` é nulo nas campanhas criadas à mão, e o Postgres permite
+  /// vários nulos numa única — então elas não colidem entre si.
+  @@unique([organizationId, channel, externalId])
   @@index([organizationId, channel])
   @@index([organizationId, status])
 }
@@ -886,4 +897,41 @@ model SitePage {
 
   @@unique([organizationId, slug])
   @@index([organizationId, published])
+}
+
+/// Conexão com uma conta de anúncios (Meta Ads, Google Ads).
+///
+/// Uma por provedor e por loja: conectar de novo substitui a conexão
+/// anterior em vez de acumular contas órfãs que ninguém sabe de quem são.
+model AdAccountConnection {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  provider AdProvider
+
+  /// Conta escolhida no provedor: "act_123456" no Meta, o id numérico no Google.
+  externalAccountId String?
+  accountName       String?
+  /// Contas às quais o login dá acesso, para quem administra mais de uma.
+  availableAccounts Json?
+
+  /// Tokens cifrados em repouso — ver src/lib/secret-box.ts. Quem lê o banco
+  /// não pode sair gastando a verba de anúncio de ninguém.
+  accessToken  String  @db.Text
+  refreshToken String? @db.Text
+  expiresAt    DateTime?
+  scope        String?
+
+  lastSyncedAt DateTime?
+  lastSyncError String?  @db.Text
+
+  connectedById String?
+  connectedBy   User?   @relation("AdConnectionConnectedBy", fields: [connectedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, provider])
+  @@index([organizationId])
 }

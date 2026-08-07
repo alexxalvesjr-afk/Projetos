@@ -17,6 +17,10 @@ import {
   metricsRepository,
   monthPeriod,
 } from "@/server/repositories/metrics.repository";
+import { hasPermission } from "@/lib/rbac";
+import { listConnections } from "@/server/services/ads.service";
+import { AdConnections } from "@/components/marketing/ad-connections";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -56,11 +60,53 @@ const CHANNEL_LABELS: Record<CampaignChannel, string> = {
   OTHER: "Outro",
 };
 
-async function Marketing() {
+/**
+ * Recado de volta do fluxo de autorização.
+ *
+ * O provedor devolve o navegador para cá com um parâmetro na URL; sem traduzi-lo
+ * o lojista voltaria para a mesma tela sem saber se deu certo.
+ */
+const CONNECTION_FEEDBACK: Record<
+  string,
+  { tone: "success" | "info" | "warning" | "destructive"; text: string }
+> = {
+  conectada: {
+    tone: "success",
+    text: "Conta conectada. O desempenho dos últimos 90 dias já está abaixo.",
+  },
+  "escolher-conta": {
+    tone: "info",
+    text: "Autorização concluída. Escolha qual conta de anúncios o CRM deve acompanhar.",
+  },
+  "sem-contas": {
+    tone: "warning",
+    text: "O perfil autorizado não administra nenhuma conta de anúncios. Entre com o perfil que gerencia as campanhas.",
+  },
+  "sem-chaves": {
+    tone: "warning",
+    text: "Esta plataforma ainda não foi configurada nesta instalação. Use o botão “Configurar” para ver o passo a passo.",
+  },
+  cancelada: {
+    tone: "info",
+    text: "Autorização cancelada. Nada foi alterado.",
+  },
+  invalida: {
+    tone: "destructive",
+    text: "O pedido de autorização expirou ou não confere. Clique em “Conectar” outra vez.",
+  },
+  falhou: {
+    tone: "destructive",
+    text: "Não foi possível concluir a conexão. Tente novamente em alguns instantes.",
+  },
+};
+
+async function Marketing({ feedback }: { feedback?: string }) {
   const user = await requirePermission("campaign:view");
   const period = monthPeriod();
+  const notice = feedback ? CONNECTION_FEEDBACK[feedback] : undefined;
 
-  const [summary, campaigns] = await Promise.all([
+  const [connections, summary, campaigns] = await Promise.all([
+    listConnections(user.organizationId),
     metricsRepository.marketingSummary(user.organizationId, period),
     db.campaign.findMany({
       where: { organizationId: user.organizationId },
@@ -114,6 +160,17 @@ async function Marketing() {
 
   return (
     <div className="space-y-6">
+      {notice ? (
+        <Alert variant={notice.tone}>
+          <AlertDescription>{notice.text}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <AdConnections
+        connections={connections}
+        canManage={hasPermission(user.role, "campaign:manage")}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard
           index={0}
@@ -275,8 +332,13 @@ async function Marketing() {
   );
 }
 
-export default async function MarketingPage() {
+export default async function MarketingPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requirePermission("campaign:view");
+  const feedback = (await searchParams).integracao;
 
   return (
     <div className="space-y-6">
@@ -294,7 +356,7 @@ export default async function MarketingPage() {
           </div>
         }
       >
-        <Marketing />
+        <Marketing feedback={typeof feedback === "string" ? feedback : undefined} />
       </Suspense>
     </div>
   );
