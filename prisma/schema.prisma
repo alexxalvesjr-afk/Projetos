@@ -230,13 +230,6 @@ model Organization {
   youtubeUrl   String?
   tiktokUrl    String?
 
-  /// Quando o site da revenda leu o estoque pela última vez, e de qual
-  /// endereço. É o único sinal de que a integração está de pé: sem isso,
-  /// "cadastrei e não apareceu" não distingue site desligado de carro não
-  /// publicado, e a resposta depende de alguém abrir o console do navegador.
-  feedLastReadAt DateTime?
-  feedLastOrigin String?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Car, Plus, SearchX } from "lucide-react";
 
-import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/session";
 import { hasPermission } from "@/lib/rbac";
 import { formatCurrencyShort } from "@/lib/format";
@@ -20,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InventoryFilters } from "@/components/inventory/inventory-filters";
-import { SiteStatus } from "@/components/inventory/site-status";
 import {
   ShowroomCard,
   ShowroomCardSkeleton,
@@ -74,7 +72,7 @@ async function InventoryList({
     withoutMargin: params.margem === "pendente",
   };
 
-  const [result, brands, stock, organization] = await Promise.all([
+  const [result, brands, stock] = await Promise.all([
     vehicleRepository.list(user.organizationId, {
       filters,
       sort: params.sort,
@@ -83,10 +81,6 @@ async function InventoryList({
     }),
     vehicleRepository.brands(user.organizationId),
     metricsRepository.stockSummary(user.organizationId),
-    db.organization.findUnique({
-      where: { id: user.organizationId },
-      select: { feedLastReadAt: true, feedLastOrigin: true },
-    }),
   ]);
 
   const hasFilters = Boolean(
@@ -101,11 +95,6 @@ async function InventoryList({
 
   return (
     <div className="space-y-5">
-      <SiteStatus
-        lastReadAt={organization?.feedLastReadAt ?? null}
-        lastOrigin={organization?.feedLastOrigin ?? null}
-      />
-
       {/* Stock summary strip */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
