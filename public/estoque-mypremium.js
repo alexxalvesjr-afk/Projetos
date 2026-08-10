@@ -17,6 +17,7 @@
  *   data-loja="mypremium-motors"   qual loja mostrar
  *   data-alvo="#meus-carros"       onde inserir os cards
  *   data-limite="60"               quantos carros
+ *   data-substituir="sim"          troca a lista fixa do site pela do CRM
  */
 (function () {
   "use strict";
@@ -43,6 +44,13 @@
     loja: attr("loja", "mypremium-motors"),
     alvo: attr("alvo", "#estoque-mypremium"),
     limite: attr("limite", "60"),
+    // Com data-substituir, a lista fixa do site sai e fica só o estoque do
+    // CRM. Fora isso os carros do CRM entram ao lado dos que já existem.
+    //
+    // Não é o padrão de propósito: apagar conteúdo de um lugar que o script
+    // deduziu sozinho é a única coisa aqui capaz de estragar uma página, e
+    // essa decisão tem de ser de quem instala, não do script.
+    substituir: /^(sim|true|1)$/i.test(attr("substituir", "")),
   };
 
   /**
@@ -340,7 +348,12 @@
       }
 
       if (destino.junto) {
-        // Acrescenta aos que já estão lá, sem apagar nada do site.
+        // A limpeza acontece aqui, e não antes da busca, de propósito: o
+        // estoque do site só sai de cena quando há estoque do CRM para pôr
+        // no lugar. Uma queda do CRM ou uma internet ruim não podem esvaziar
+        // a vitrine de ninguém.
+        if (CONFIG.substituir) destino.alvo.textContent = "";
+
         dados.veiculos.forEach(function (veiculo) {
           destino.alvo.appendChild(montarCard(veiculo));
         });

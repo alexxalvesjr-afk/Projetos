@@ -40,7 +40,25 @@ Para escolher o lugar exato, coloque onde os carros devem entrar:
 <div id="estoque-mypremium"></div>
 ```
 
-### Substituir os carros de exemplo
+### Deixar só os carros do CRM
+
+Para a lista fixa do site sair de cena e ficar apenas o estoque real,
+acrescente `data-substituir="sim"`:
+
+```html
+<script
+  src="https://projetos-fawn-two.vercel.app/estoque-mypremium.js"
+  data-substituir="sim"
+  defer
+></script>
+```
+
+A troca só acontece **depois** que os carros do CRM chegam. Se o CRM estiver
+fora do ar, se a internet do visitante falhar ou se o estoque estiver vazio, os
+carros que já estão no site continuam onde estão — uma vitrine em branco seria
+pior do que uma vitrine desatualizada.
+
+### Substituir por um alvo específico
 
 Nos casos 1 e 2 — onde alguém apontou o lugar de propósito — o script **limpa**
 o que estiver ali antes de desenhar. É assim que a lista fixa do site dá lugar
