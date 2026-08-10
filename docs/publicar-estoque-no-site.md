@@ -17,17 +17,41 @@ site sozinha, sem reeditar nem reenviar nada.
 
 O script procura, nesta ordem:
 
-1. Um elemento com `id="estoque-mypremium"` (ou o que você indicar em
-   `data-alvo`).
-2. Uma seção com `id` `estoque`, `carros`, `veiculos`, `inventario` ou
+1. O seletor indicado em `data-alvo`.
+2. Um elemento com `id="estoque-mypremium"`.
+3. Uma seção com `id` `estoque`, `carros`, `veiculos`, `inventario` ou
    `nossos-carros`.
-3. Não achando nenhuma, cria uma seção própria no fim da página.
+4. Um título (`h1`, `h2` ou `h3`) escrito "Nossos carros", "Estoque" ou
+   "Veículos" — os carros entram logo abaixo dele.
+
+**Não achando nenhum desses, o script não desenha nada** e escreve o motivo no
+console do navegador. Ele nunca cria seção nova: uma versão anterior fazia
+isso e o bloco aparecia solto depois do rodapé, desarrumando a página.
 
 Para escolher o lugar exato, coloque onde os carros devem entrar:
 
 ```html
 <div id="estoque-mypremium"></div>
 ```
+
+### Substituir os carros de exemplo
+
+Nos casos 1 e 2 — onde alguém apontou o lugar de propósito — o script **limpa**
+o que estiver ali antes de desenhar. É assim que a lista fixa do site dá lugar
+ao estoque real:
+
+```html
+<script
+  src="https://projetos-fawn-two.vercel.app/estoque-mypremium.js"
+  data-alvo=".grid-de-carros"
+  defer
+></script>
+```
+
+Nos casos 3 e 4, adivinhados, ele acrescenta sem apagar nada — um lugar
+adivinhado não é lugar para remover conteúdo de ninguém. Se os carros de
+exemplo continuarem aparecendo junto, é sinal de que falta apontar o
+`data-alvo`.
 
 ## Ajustes opcionais
 

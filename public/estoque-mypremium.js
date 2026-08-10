@@ -46,41 +46,93 @@
   };
 
   /**
-   * Descobre onde inserir a lista.
+   * Descobre onde inserir a lista — e desiste em silêncio se não descobrir.
    *
-   * O HTML do site pode não ter sido preparado para isto, então a busca vai
-   * do mais explícito ao mais genérico: o container pedido, uma seção que
-   * pareça ser a de estoque e, em último caso, uma seção nova no fim da
-   * página. O último caso é um palpite — mas um palpite visível é melhor do
-   * que nada renderizado e nenhuma pista do motivo.
+   * A primeira versão, não achando lugar, criava uma seção própria no fim da
+   * página. Num site real isso apareceu como um bloco solto depois do rodapé e
+   * desarrumou o layout: o script deve publicar o estoque, nunca inventar uma
+   * seção. Hoje, sem lugar certo, ele não desenha nada e explica o motivo no
+   * console — invisível é ruim, mas estragar a página é pior.
+   *
+   * A busca vai do explícito ao provável:
+   *   1. o seletor pedido em data-alvo;
+   *   2. um elemento com id="estoque-mypremium";
+   *   3. um id conhecido de seção de estoque;
+   *   4. um título escrito "estoque", "nossos carros" ou "veículos".
+   *
+   * O passo 4 existe porque quase nenhum site tem o id certo, mas todos têm o
+   * título escrito na tela — é o que o visitante lê para achar os carros.
+   */
+  var IDS = [
+    "estoque-mypremium",
+    "estoque",
+    "carros",
+    "veiculos",
+    "veículos",
+    "inventario",
+    "nossos-carros",
+  ];
+
+  var TITULO = /^\s*(nosso[s]?\s+(carros|ve[íi]culos)|estoque|ve[íi]culos|carros\s+dispon[íi]veis|nosso\s+estoque)\s*$/i;
+
+  function porTitulo() {
+    var titulos = document.querySelectorAll("h1,h2,h3");
+    for (var i = 0; i < titulos.length; i++) {
+      if (!TITULO.test(titulos[i].textContent || "")) continue;
+
+      // Insere logo depois do título, dentro da mesma seção: é onde a lista
+      // de carros estaria se o site já a tivesse.
+      var alvo = document.createElement("div");
+      alvo.className = "mp-grade-wrap";
+      titulos[i].insertAdjacentElement("afterend", alvo);
+      return alvo;
+    }
+    return null;
+  }
+
+  /**
+   * Achou o lugar? Devolve { alvo, limpar } — `limpar` diz se o conteúdo que
+   * já está ali pode ser apagado.
+   *
+   * Apagar só acontece onde alguém apontou de propósito (data-alvo ou uma div
+   * com id="estoque-mypremium"). Num lugar adivinhado, o script acrescenta sem
+   * remover: os carros de exemplo do site continuam lá, o que é visível e
+   * reversível — ao contrário de apagar a seção errada de alguém.
    */
   function acharContainer() {
-    var explicito = document.querySelector(CONFIG.alvo);
-    if (explicito) return explicito;
-
-    var candidatos = [
-      "estoque",
-      "carros",
-      "veiculos",
-      "veículos",
-      "inventario",
-      "nossos-carros",
-    ];
-    for (var i = 0; i < candidatos.length; i++) {
-      var secao = document.getElementById(candidatos[i]);
-      if (secao) {
-        var alvo = document.createElement("div");
-        alvo.className = "mp-grade-wrap";
-        secao.appendChild(alvo);
-        return alvo;
-      }
+    var pedido = tag && tag.getAttribute("data-alvo");
+    if (pedido) {
+      var explicito = document.querySelector(pedido);
+      if (explicito) return { alvo: explicito, limpar: true };
+      aviso("não encontrei nada com o seletor " + pedido + " nesta página.");
+      return null;
     }
 
-    var novo = document.createElement("section");
-    novo.id = "estoque-mypremium";
-    novo.style.padding = "48px 16px";
-    document.body.appendChild(novo);
-    return novo;
+    for (var i = 0; i < IDS.length; i++) {
+      var secao = document.getElementById(IDS[i]);
+      if (!secao) continue;
+      // O container dedicado é para isto; uma seção do site, não.
+      if (IDS[i] === "estoque-mypremium") return { alvo: secao, limpar: true };
+
+      var dentro = document.createElement("div");
+      dentro.className = "mp-grade-wrap";
+      secao.appendChild(dentro);
+      return { alvo: dentro, limpar: false };
+    }
+
+    var porTexto = porTitulo();
+    if (porTexto) return { alvo: porTexto, limpar: false };
+
+    aviso(
+      "não achei onde colocar os carros. Crie uma div com " +
+        'id="estoque-mypremium" onde eles devem aparecer, ou aponte o lugar ' +
+        'com data-alvo="#seu-seletor" na tag do script.',
+    );
+    return null;
+  }
+
+  function aviso(mensagem) {
+    console.warn("[estoque-mypremium] " + mensagem);
   }
 
   function estilo() {
@@ -106,8 +158,17 @@
     document.head.appendChild(css);
   }
 
-  var container = acharContainer();
-  if (!container) return;
+  var destino = acharContainer();
+  if (!destino) return;
+
+  if (destino.limpar) destino.alvo.textContent = "";
+
+  // Daqui para a frente o script só escreve dentro desta div, criada por ele.
+  // Assim "limpar a tela para redesenhar" nunca alcança conteúdo do site.
+  var container = document.createElement("div");
+  container.className = "mp-raiz";
+  destino.alvo.appendChild(container);
+
   estilo();
 
   var dadosLoja = null;
