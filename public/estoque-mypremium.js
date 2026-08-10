@@ -73,21 +73,72 @@
     "nossos-carros",
   ];
 
-  var TITULO = /^\s*(nosso[s]?\s+(carros|ve[íi]culos)|estoque|ve[íi]culos|carros\s+dispon[íi]veis|nosso\s+estoque)\s*$/i;
+  // Casa com "Estoque", "Nossos carros", "Destaques do estoque", "Veículos
+  // disponíveis" — a frase que o visitante lê para achar os carros, que varia
+  // de site para site mas gira sempre em torno das mesmas palavras.
+  var TITULO = /(estoque|nosso[s]?\s+(carros|ve[íi]culos)|ve[íi]culos|carros)/i;
 
   function porTitulo() {
     var titulos = document.querySelectorAll("h1,h2,h3");
     for (var i = 0; i < titulos.length; i++) {
-      if (!TITULO.test(titulos[i].textContent || "")) continue;
+      var texto = (titulos[i].textContent || "").trim();
+      // Um título curto: "Estoque" casa, um parágrafo que menciona estoque não.
+      if (texto.length > 40 || !TITULO.test(texto)) continue;
 
-      // Insere logo depois do título, dentro da mesma seção: é onde a lista
-      // de carros estaria se o site já a tivesse.
+      var secao = titulos[i].closest("section") || titulos[i].parentElement;
+      var grade = secao && acharGrade(secao);
+      if (grade) return { alvo: grade, limpar: false, junto: true };
+
+      // Sem grade existente, entra logo depois do título — é onde a lista de
+      // carros estaria se o site já a tivesse.
       var alvo = document.createElement("div");
       alvo.className = "mp-grade-wrap";
       titulos[i].insertAdjacentElement("afterend", alvo);
-      return alvo;
+      return { alvo: alvo, limpar: false, junto: false };
     }
     return null;
+  }
+
+  /**
+   * A grade de cards que o site já tem dentro desta seção.
+   *
+   * Achando-a, os carros do CRM entram nela como mais alguns cards, ao lado
+   * dos que já estavam — que é o que se espera de um estoque. Sem isso o
+   * script pendurava a lista no fim da seção, depois de botões e rodapés da
+   * própria seção, e o resultado parecia um segundo bloco de carros.
+   *
+   * O reconhecimento é conservador: três ou mais filhos diretos iguais entre
+   * si (mesma tag, mesma classe) dentro de um elemento que o navegador está
+   * desenhando como grid ou flex. Uma lista de links de menu não passa por
+   * estar fora da seção; um par de botões não passa por serem só dois.
+   */
+  function acharGrade(secao) {
+    var melhor = null;
+    var candidatos = secao.querySelectorAll("div,ul,ol");
+
+    for (var i = 0; i < candidatos.length; i++) {
+      var filhos = candidatos[i].children;
+      if (filhos.length < 3) continue;
+
+      var assinatura = filhos[0].tagName + "|" + (filhos[0].className || "");
+      var iguais = true;
+      for (var j = 1; j < filhos.length; j++) {
+        if (filhos[j].tagName + "|" + (filhos[j].className || "") !== assinatura) {
+          iguais = false;
+          break;
+        }
+      }
+      if (!iguais) continue;
+
+      var display = getComputedStyle(candidatos[i]).display;
+      if (display !== "grid" && display !== "flex") continue;
+
+      if (!melhor || filhos.length > melhor.n) {
+        melhor = { el: candidatos[i], n: filhos.length };
+      }
+    }
+
+    return melhor && melhor.el;
   }
 
   /**
@@ -103,7 +154,7 @@
     var pedido = tag && tag.getAttribute("data-alvo");
     if (pedido) {
       var explicito = document.querySelector(pedido);
-      if (explicito) return { alvo: explicito, limpar: true };
+      if (explicito) return { alvo: explicito, limpar: true, junto: false };
       aviso("não encontrei nada com o seletor " + pedido + " nesta página.");
       return null;
     }
@@ -112,16 +163,24 @@
       var secao = document.getElementById(IDS[i]);
       if (!secao) continue;
       // O container dedicado é para isto; uma seção do site, não.
-      if (IDS[i] === "estoque-mypremium") return { alvo: secao, limpar: true };
+      if (IDS[i] === "estoque-mypremium") {
+        return { alvo: secao, limpar: true, junto: false };
+      }
+
+      // Havendo uma grade de carros na seção, os novos entram nela. Pendurar
+      // no fim da seção jogaria a lista para depois de botões e chamadas que
+      // fecham o bloco — foi assim que virou um segundo bloco de carros.
+      var grade = acharGrade(secao);
+      if (grade) return { alvo: grade, limpar: false, junto: true };
 
       var dentro = document.createElement("div");
       dentro.className = "mp-grade-wrap";
       secao.appendChild(dentro);
-      return { alvo: dentro, limpar: false };
+      return { alvo: dentro, limpar: false, junto: false };
     }
 
     var porTexto = porTitulo();
-    if (porTexto) return { alvo: porTexto, limpar: false };
+    if (porTexto) return porTexto;
 
     aviso(
       "não achei onde colocar os carros. Crie uma div com " +
@@ -162,14 +221,20 @@
   if (!destino) return;
 
   if (destino.limpar) destino.alvo.textContent = "";
-
-  // Daqui para a frente o script só escreve dentro desta div, criada por ele.
-  // Assim "limpar a tela para redesenhar" nunca alcança conteúdo do site.
-  var container = document.createElement("div");
-  container.className = "mp-raiz";
-  destino.alvo.appendChild(container);
-
   estilo();
+
+  // Entrando numa grade que já existe, os cards viram filhos diretos dela —
+  // é o que os faz cair nas mesmas colunas, ao lado dos carros do site. Uma
+  // div envolvendo-os viraria um único item da grade, e o bloco inteiro
+  // ocuparia a largura de um card só.
+  var container = null;
+  if (!destino.junto) {
+    // Nos demais casos o script escreve dentro de uma div própria, para que
+    // "limpar a tela para redesenhar" nunca alcance conteúdo do site.
+    container = document.createElement("div");
+    container.className = "mp-raiz";
+    destino.alvo.appendChild(container);
+  }
 
   var dadosLoja = null;
 
@@ -187,6 +252,10 @@
   }
 
   function estado(mensagem) {
+    // Numa grade compartilhada não há onde escrever um recado sem empurrar os
+    // carros do site; ali o silêncio é a resposta certa, e o motivo vai para
+    // o console.
+    if (!container) return;
     container.textContent = "";
     container.appendChild(elemento("p", "mp-estado", mensagem));
   }
@@ -267,6 +336,14 @@
 
       if (!dados.veiculos || dados.veiculos.length === 0) {
         estado("Nenhum veículo disponível no momento.");
+        return;
+      }
+
+      if (destino.junto) {
+        // Acrescenta aos que já estão lá, sem apagar nada do site.
+        dados.veiculos.forEach(function (veiculo) {
+          destino.alvo.appendChild(montarCard(veiculo));
+        });
         return;
       }
 

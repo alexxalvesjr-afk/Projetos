@@ -21,8 +21,14 @@ O script procura, nesta ordem:
 2. Um elemento com `id="estoque-mypremium"`.
 3. Uma seção com `id` `estoque`, `carros`, `veiculos`, `inventario` ou
    `nossos-carros`.
-4. Um título (`h1`, `h2` ou `h3`) escrito "Nossos carros", "Estoque" ou
-   "Veículos" — os carros entram logo abaixo dele.
+4. Um título (`h1`, `h2` ou `h3`) que fale em estoque, carros ou veículos —
+   "Nossos carros", "Destaques do estoque", "Veículos disponíveis".
+
+Nos casos 3 e 4, se a seção já tiver uma grade de cards, os carros do CRM
+**entram nessa mesma grade**, ao lado dos que já estão. Só não havendo grade é
+que o script cria a sua. Pendurar a lista no fim da seção jogaria os carros
+para depois de botões e chamadas que fecham o bloco — e o resultado parecia um
+segundo bloco de carros, separado do primeiro.
 
 **Não achando nenhum desses, o script não desenha nada** e escreve o motivo no
 console do navegador. Ele nunca cria seção nova: uma versão anterior fazia
