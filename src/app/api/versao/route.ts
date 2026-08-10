@@ -10,8 +10,9 @@ export const dynamic = "force-dynamic";
  * antecede qualquer investigação de "o botão não apareceu": o deploy chegou a
  * acontecer? Sem isso, cada dúvida vira uma caça ao painel da Vercel.
  *
- * Só devolve o que já é público em qualquer commit do repositório — hash,
- * branch e mensagem. Nenhuma variável de ambiente da aplicação passa por aqui.
+ * A rota é aberta, então devolve apenas identificadores: hash e branch. A
+ * mensagem do commit fica de fora de propósito — o repositório é privado, e
+ * ela descreveria em português o que mudou por dentro do sistema.
  */
 export function GET() {
   const sha = process.env.VERCEL_GIT_COMMIT_SHA ?? null;
@@ -21,7 +22,6 @@ export function GET() {
       commit: sha ? sha.slice(0, 7) : "desconhecido",
       commitCompleto: sha,
       branch: process.env.VERCEL_GIT_COMMIT_REF ?? null,
-      mensagem: process.env.VERCEL_GIT_COMMIT_MESSAGE?.split("\n")[0] ?? null,
       ambiente: process.env.VERCEL_ENV ?? "local",
       // Carimbado quando o servidor respondeu, não quando foi construído: útil
       // para saber se a instância está viva, e não só se o código é o certo.
