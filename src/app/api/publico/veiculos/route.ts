@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 
 import { db } from "@/lib/db";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -71,6 +71,8 @@ export async function GET(request: NextRequest) {
   const organization = await db.organization.findUnique({
     where: { slug },
     select: {
+      id: true,
+      feedLastReadAt: true,
       name: true,
       slug: true,
       phone: true,
@@ -91,6 +93,31 @@ export async function GET(request: NextRequest) {
       { erro: "Loja não encontrada." },
       { status: 404, headers: CORS },
     );
+  }
+
+  // Registra que alguém leu o estoque. É o que permite a tela de estoque
+  // dizer "seu site buscou os carros há 2 minutos" em vez de deixar o lojista
+  // adivinhando se a integração está de pé. Uma vez por minuto no máximo: a
+  // pergunta é "o site está ligado?", e para isso um minuto de resolução
+  // basta — gravar a cada visita transformaria uma página movimentada numa
+  // enxurrada de escritas.
+  const lastRead = organization.feedLastReadAt?.getTime() ?? 0;
+  if (Date.now() - lastRead > 60_000) {
+    const origin =
+      request.headers.get("origin") ??
+      request.headers.get("referer")?.replace(/^(https?:\/\/[^/]+).*$/, "$1") ??
+      null;
+
+    after(async () => {
+      await db.organization
+        .update({
+          where: { id: organization.id },
+          data: { feedLastReadAt: new Date(), feedLastOrigin: origin },
+        })
+        // Um carimbo de diagnóstico não pode derrubar a resposta que o site
+        // do lojista está esperando.
+        .catch(() => null);
+    });
   }
 
   const limit = Math.min(
