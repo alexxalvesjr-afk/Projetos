@@ -81,30 +81,23 @@
     "nossos-carros",
   ];
 
-  // Casa com "Estoque", "Nossos carros", "Destaques do estoque", "Veículos
-  // disponíveis" — a frase que o visitante lê para achar os carros, que varia
-  // de site para site mas gira sempre em torno das mesmas palavras.
-  var TITULO = /(estoque|nosso[s]?\s+(carros|ve[íi]culos)|ve[íi]culos|carros)/i;
+  // Casa com "Estoque", "Nossos carros", "Destaques do estoque", "Encontre
+  // seu carro", "Seminovos" — a frase que o visitante lê para achar os
+  // carros, que varia de site para site mas gira em torno das mesmas
+  // palavras. O limite de tamanho lá embaixo é o que separa um título de um
+  // parágrafo que por acaso menciona carros.
+  var TITULO = /(estoque|carro|ve[íi]culo|seminovo)/i;
 
-  function porTitulo() {
+  function titulosDeEstoque() {
+    var achados = [];
     var titulos = document.querySelectorAll("h1,h2,h3");
     for (var i = 0; i < titulos.length; i++) {
       var texto = (titulos[i].textContent || "").trim();
       // Um título curto: "Estoque" casa, um parágrafo que menciona estoque não.
       if (texto.length > 40 || !TITULO.test(texto)) continue;
-
-      var secao = titulos[i].closest("section") || titulos[i].parentElement;
-      var grade = secao && acharGrade(secao);
-      if (grade) return { alvo: grade, limpar: false, junto: true };
-
-      // Sem grade existente, entra logo depois do título — é onde a lista de
-      // carros estaria se o site já a tivesse.
-      var alvo = document.createElement("div");
-      alvo.className = "mp-grade-wrap";
-      titulos[i].insertAdjacentElement("afterend", alvo);
-      return { alvo: alvo, limpar: false, junto: false };
+      achados.push(titulos[i]);
     }
-    return null;
+    return achados;
   }
 
   /**
@@ -150,51 +143,67 @@
   }
 
   /**
-   * Achou o lugar? Devolve { alvo, limpar } — `limpar` diz se o conteúdo que
-   * já está ali pode ser apagado.
+   * O lugar certo, quando ele é inequívoco.
    *
-   * Apagar só acontece onde alguém apontou de propósito (data-alvo ou uma div
-   * com id="estoque-mypremium"). Num lugar adivinhado, o script acrescenta sem
-   * remover: os carros de exemplo do site continuam lá, o que é visível e
-   * reversível — ao contrário de apagar a seção errada de alguém.
+   * "Inequívoco" é um container que alguém apontou de propósito, ou uma grade
+   * de cards que já existe. Só isso — nada de deduzir um ponto de inserção a
+   * partir de um título solto, que é o trabalho de `destinoAproximado`.
+   *
+   * A separação existe porque a página de estoque de um site costuma montar a
+   * lista por JavaScript, milissegundos depois deste script rodar. Quem
+   * aceita o primeiro palpite disponível acaba desenhando um bloco à parte
+   * antes de a grade de verdade sequer existir.
    */
-  function acharContainer() {
+  function destinoCerto() {
     var pedido = tag && tag.getAttribute("data-alvo");
     if (pedido) {
       var explicito = document.querySelector(pedido);
-      if (explicito) return { alvo: explicito, limpar: true, junto: false };
-      aviso("não encontrei nada com o seletor " + pedido + " nesta página.");
-      return null;
+      return explicito ? { alvo: explicito, limpar: true, junto: false } : null;
     }
+
+    var dedicado = document.getElementById("estoque-mypremium");
+    if (dedicado) return { alvo: dedicado, limpar: true, junto: false };
 
     for (var i = 0; i < IDS.length; i++) {
       var secao = document.getElementById(IDS[i]);
-      if (!secao) continue;
-      // O container dedicado é para isto; uma seção do site, não.
-      if (IDS[i] === "estoque-mypremium") {
-        return { alvo: secao, limpar: true, junto: false };
-      }
-
-      // Havendo uma grade de carros na seção, os novos entram nela. Pendurar
-      // no fim da seção jogaria a lista para depois de botões e chamadas que
-      // fecham o bloco — foi assim que virou um segundo bloco de carros.
-      var grade = acharGrade(secao);
+      var grade = secao && acharGrade(secao);
       if (grade) return { alvo: grade, limpar: false, junto: true };
+    }
 
+    var titulos = titulosDeEstoque();
+    for (var j = 0; j < titulos.length; j++) {
+      var area = titulos[j].closest("section, main") || document.body;
+      var gradeDoTitulo = acharGrade(area);
+      if (gradeDoTitulo) return { alvo: gradeDoTitulo, limpar: false, junto: true };
+    }
+
+    return null;
+  }
+
+  /**
+   * O plano B, usado só quando a espera pela grade termina sem grade.
+   *
+   * Aqui o script acrescenta sem remover nada: é um palpite, e palpite não
+   * apaga conteúdo de ninguém.
+   */
+  function destinoAproximado() {
+    for (var i = 0; i < IDS.length; i++) {
+      var secao = document.getElementById(IDS[i]);
+      if (!secao) continue;
       var dentro = document.createElement("div");
       dentro.className = "mp-grade-wrap";
       secao.appendChild(dentro);
       return { alvo: dentro, limpar: false, junto: false };
     }
 
-    var porTexto = porTitulo();
-    if (porTexto) return porTexto;
+    var titulos = titulosDeEstoque();
+    if (titulos.length > 0) {
+      var alvo = document.createElement("div");
+      alvo.className = "mp-grade-wrap";
+      titulos[0].insertAdjacentElement("afterend", alvo);
+      return { alvo: alvo, limpar: false, junto: false };
+    }
 
-    aviso(
-      "não achei onde colocar os carros. Crie uma div com " +
-        'id="estoque-mypremium" onde eles devem aparecer, ou aponte o lugar ' +
-        'com data-alvo="#seu-seletor" na tag do script.',
-    );
     return null;
   }
 
@@ -225,24 +234,13 @@
     document.head.appendChild(css);
   }
 
-  var destino = acharContainer();
-  if (!destino) return;
-
-  if (destino.limpar) destino.alvo.textContent = "";
   estilo();
 
-  // Entrando numa grade que já existe, os cards viram filhos diretos dela —
-  // é o que os faz cair nas mesmas colunas, ao lado dos carros do site. Uma
-  // div envolvendo-os viraria um único item da grade, e o bloco inteiro
-  // ocuparia a largura de um card só.
+  // O destino não é resolvido agora: numa página com filtros, a lista de
+  // carros é montada pelo próprio site depois deste script rodar, e procurar
+  // cedo demais não acharia grade nenhuma. Ver `montar()` no fim do arquivo.
+  var destino = null;
   var container = null;
-  if (!destino.junto) {
-    // Nos demais casos o script escreve dentro de uma div própria, para que
-    // "limpar a tela para redesenhar" nunca alcance conteúdo do site.
-    container = document.createElement("div");
-    container.className = "mp-raiz";
-    destino.alvo.appendChild(container);
-  }
 
   var dadosLoja = null;
 
@@ -263,7 +261,7 @@
     // Numa grade compartilhada não há onde escrever um recado sem empurrar os
     // carros do site; ali o silêncio é a resposta certa, e o motivo vai para
     // o console.
-    if (!container) return;
+    if (!container || !container.isConnected) return;
     container.textContent = "";
     container.appendChild(elemento("p", "mp-estado", mensagem));
   }
@@ -325,14 +323,146 @@
     return card;
   }
 
-  estado("Carregando estoque…");
-
   var url =
     CONFIG.api +
     "?loja=" +
     encodeURIComponent(CONFIG.loja) +
     "&limite=" +
     encodeURIComponent(CONFIG.limite);
+
+  /** Veículos já baixados; `null` enquanto a busca não terminou. */
+  var veiculos = null;
+
+  /** Desenha os carros no destino, escolhendo o modo pelo tipo de destino. */
+  function desenhar() {
+    if (destino.junto) {
+      // A limpeza acontece aqui, e não antes da busca, de propósito: o
+      // estoque do site só sai de cena quando há estoque do CRM para pôr no
+      // lugar. Uma queda do CRM ou uma internet ruim não podem esvaziar a
+      // vitrine de ninguém.
+      if (CONFIG.substituir) destino.alvo.textContent = "";
+
+      veiculos.forEach(function (veiculo) {
+        destino.alvo.appendChild(montarCard(veiculo));
+      });
+      return;
+    }
+
+    if (!container || !container.isConnected) {
+      container = document.createElement("div");
+      container.className = "mp-raiz";
+      destino.alvo.appendChild(container);
+    }
+
+    var grade = elemento("div", "mp-grade");
+    veiculos.forEach(function (veiculo) {
+      grade.appendChild(montarCard(veiculo));
+    });
+
+    container.textContent = "";
+    container.appendChild(grade);
+  }
+
+  /**
+   * Coloca os carros na página, se houver onde.
+   *
+   * Reaproveita o destino da vez anterior enquanto ele continuar na página:
+   * procurar de novo poderia escolher outro lugar e espalhar os carros em
+   * dois pontos.
+   */
+  function montar(procurar) {
+    if (!veiculos) return false;
+
+    if (!destino || !destino.alvo.isConnected) {
+      destino = procurar();
+      if (!destino) return false;
+      if (destino.limpar) destino.alvo.textContent = "";
+      container = null;
+    }
+
+    desenhar();
+    return true;
+  }
+
+  /** Há conteúdo do site onde deveria haver só estoque do CRM? */
+  function precisaRedesenhar() {
+    if (!destino || !destino.alvo.isConnected) return true;
+    if (!document.querySelector(".mp-card")) return true;
+
+    if (destino.junto && CONFIG.substituir) {
+      var filhos = destino.alvo.children;
+      for (var i = 0; i < filhos.length; i++) {
+        if (!filhos[i].classList.contains("mp-card")) return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Espera a página terminar de se montar, e continua de olho depois.
+   *
+   * Numa página de estoque com filtros, a lista de carros é desenhada pelo
+   * JavaScript do próprio site — às vezes bem depois deste script rodar. Quem
+   * procura a grade uma vez só, no carregamento, não acha nada e recorre ao
+   * plano B, desenhando um bloco à parte acima da lista de verdade; foi o que
+   * aconteceu na página /estoque de um site real.
+   *
+   * Por isso a espera: por alguns segundos só o destino certo serve. Esgotado
+   * o prazo sem grade nenhuma, aí sim vale o palpite. E a mesma vigilância
+   * cobre o caso inverso — o site redesenhar a lista depois e levar junto os
+   * cards do CRM.
+   */
+  function acompanhar() {
+    if (typeof MutationObserver !== "function") {
+      if (!montar(destinoCerto)) montar(destinoAproximado);
+      return;
+    }
+
+    var ESPERA_PELA_GRADE = 4000;
+    var JANELA = 20000;
+    var LIMITE = 10;
+    var aplicacoes = 0;
+    var agendado = null;
+    var prazoDoPlanoB = null;
+
+    var observador = new MutationObserver(function () {
+      if (agendado) return;
+      // Espera a rajada de alterações do site terminar antes de reagir; sem
+      // isso, cada nó inserido dispararia uma tentativa.
+      agendado = setTimeout(revisar, 250);
+    });
+
+    function revisar() {
+      agendado = null;
+      if (aplicacoes >= LIMITE) return encerrar();
+      // Esta checagem é o que impede as próprias inserções de realimentarem o
+      // observador num laço.
+      if (!precisaRedesenhar()) return;
+      if (montar(destinoCerto)) aplicacoes++;
+    }
+
+    function encerrar() {
+      observador.disconnect();
+      if (agendado) clearTimeout(agendado);
+      if (prazoDoPlanoB) clearTimeout(prazoDoPlanoB);
+      if (!document.querySelector(".mp-card")) {
+        aviso(
+          "não achei onde colocar os carros nesta página. Crie uma div com " +
+            'id="estoque-mypremium" onde eles devem aparecer, ou aponte o ' +
+            'lugar com data-alvo="#seu-seletor" na tag do script.',
+        );
+      }
+    }
+
+    observador.observe(document.body, { childList: true, subtree: true });
+
+    prazoDoPlanoB = setTimeout(function () {
+      if (!document.querySelector(".mp-card")) montar(destinoAproximado);
+    }, ESPERA_PELA_GRADE);
+
+    setTimeout(encerrar, JANELA);
+  }
 
   fetch(url)
     .then(function (resposta) {
@@ -347,26 +477,9 @@
         return;
       }
 
-      if (destino.junto) {
-        // A limpeza acontece aqui, e não antes da busca, de propósito: o
-        // estoque do site só sai de cena quando há estoque do CRM para pôr
-        // no lugar. Uma queda do CRM ou uma internet ruim não podem esvaziar
-        // a vitrine de ninguém.
-        if (CONFIG.substituir) destino.alvo.textContent = "";
-
-        dados.veiculos.forEach(function (veiculo) {
-          destino.alvo.appendChild(montarCard(veiculo));
-        });
-        return;
-      }
-
-      var grade = elemento("div", "mp-grade");
-      dados.veiculos.forEach(function (veiculo) {
-        grade.appendChild(montarCard(veiculo));
-      });
-
-      container.textContent = "";
-      container.appendChild(grade);
+      veiculos = dados.veiculos;
+      montar(destinoCerto);
+      acompanhar();
     })
     .catch(function (erro) {
       // Falhar calado deixaria um buraco na página sem explicação para quem

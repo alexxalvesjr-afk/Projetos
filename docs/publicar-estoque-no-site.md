@@ -30,6 +30,12 @@ que o script cria a sua. Pendurar a lista no fim da seção jogaria os carros
 para depois de botões e chamadas que fecham o bloco — e o resultado parecia um
 segundo bloco de carros, separado do primeiro.
 
+Páginas de estoque com filtros costumam montar a lista por JavaScript, depois
+deste script rodar. Por isso ele espera alguns segundos pela grade antes de
+recorrer ao passo 4 — aceitar o primeiro palpite desenharia um bloco à parte
+acima da lista de verdade. Depois de desenhar, continua de olho: se o site
+redesenhar a lista, os carros do CRM voltam.
+
 **Não achando nenhum desses, o script não desenha nada** e escreve o motivo no
 console do navegador. Ele nunca cria seção nova: uma versão anterior fazia
 isso e o bloco aparecia solto depois do rodapé, desarrumando a página.
