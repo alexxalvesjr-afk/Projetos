@@ -69,9 +69,16 @@ function parseAccounts(value: unknown): AdAccount[] {
 export async function listConnections(
   organizationId: string,
 ): Promise<AdConnectionView[]> {
-  const rows = await db.adAccountConnection.findMany({
-    where: { organizationId },
-  });
+  // Uma falha de leitura aqui não pode derrubar a aba inteira. O caso concreto
+  // é um deploy cujo banco ainda não recebeu a tabela: sem esta rede, a página
+  // de marketing viraria uma tela de erro, e o botão de conectar — que é
+  // justamente o que resolveria a situação — sumiria junto.
+  const rows = await db.adAccountConnection
+    .findMany({ where: { organizationId } })
+    .catch((error: unknown) => {
+      console.error("[integracoes] não foi possível ler as conexões:", error);
+      return [];
+    });
 
   return (["META_ADS", "GOOGLE_ADS"] as const).map((provider) => {
     const config = providerConfig(provider);
