@@ -83,6 +83,26 @@ adivinhado não é lugar para remover conteúdo de ninguém. Se os carros de
 exemplo continuarem aparecendo junto, é sinal de que falta apontar o
 `data-alvo`.
 
+## Página inicial com poucos carros
+
+A home costuma mostrar uma vitrine de destaques, não o estoque inteiro.
+`data-limite-home` define quantos carros aparecem só nela; as demais páginas
+seguem o `data-limite`:
+
+```html
+<script
+  src="https://projetos-fawn-two.vercel.app/estoque-mypremium.js"
+  data-substituir="sim"
+  data-limite-home="4"
+  defer
+></script>
+```
+
+São consideradas página inicial: `/`, `/home`, `/inicio`, `/index.html`,
+`/home.html` e `/index.php`. Como o feed já vem com os destacados primeiro,
+cortar em quatro mostra os quatro que o lojista marcou como **Destaque** no
+CRM.
+
 ## Ajustes opcionais
 
 Na mesma linha do script:

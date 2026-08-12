@@ -17,6 +17,7 @@
  *   data-loja="mypremium-motors"   qual loja mostrar
  *   data-alvo="#meus-carros"       onde inserir os cards
  *   data-limite="60"               quantos carros
+ *   data-limite-home="4"           quantos na página inicial (destaques)
  *   data-substituir="sim"          troca a lista fixa do site pela do CRM
  */
 (function () {
@@ -39,11 +40,36 @@
     }
   })();
 
+  /**
+   * A página inicial mostra uma vitrine de destaques, não o estoque inteiro.
+   *
+   * O script é injetado no site todo — uma linha só, em todas as páginas —,
+   * então quem decide quantos carros cabem é a página, não a instalação. Sem
+   * isso, a home passaria a listar o estoque inteiro no lugar dos poucos
+   * destaques que ela sempre teve.
+   *
+   * O feed já vem ordenado com os destacados primeiro, então cortar em quatro
+   * mostra exatamente os quatro que o lojista marcou como destaque no CRM.
+   */
+  function ehPaginaInicial() {
+    var caminho = location.pathname.replace(/\/+$/, "").toLowerCase();
+    return (
+      caminho === "" ||
+      caminho === "/home" ||
+      caminho === "/inicio" ||
+      caminho === "/index.html" ||
+      caminho === "/home.html" ||
+      caminho === "/index.php"
+    );
+  }
+
   var CONFIG = {
     api: origem + "/api/publico/veiculos",
     loja: attr("loja", "mypremium-motors"),
     alvo: attr("alvo", "#estoque-mypremium"),
-    limite: attr("limite", "60"),
+    limite: ehPaginaInicial()
+      ? attr("limite-home", attr("limite", "60"))
+      : attr("limite", "60"),
     // Com data-substituir, a lista fixa do site sai e fica só o estoque do
     // CRM. Fora isso os carros do CRM entram ao lado dos que já existem.
     //
