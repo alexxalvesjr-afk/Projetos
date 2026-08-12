@@ -464,7 +464,9 @@
     setTimeout(encerrar, JANELA);
   }
 
-  fetch(url)
+  // O CRM já responde sem cache; isto evita que o navegador de quem visita o
+  // site guarde a resposta por conta própria e mostre um carro já excluído.
+  fetch(url, { cache: "no-store" })
     .then(function (resposta) {
       if (!resposta.ok) throw new Error("HTTP " + resposta.status);
       return resposta.json();

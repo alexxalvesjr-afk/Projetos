@@ -217,10 +217,14 @@ export async function GET(request: NextRequest) {
     {
       headers: {
         ...CORS,
-        // A minute of CDN cache absorbs a busy site without letting a newly
-        // published car sit invisible for long.
-        "Cache-Control":
-          "public, s-maxage=60, stale-while-revalidate=300",
+        // Sem cache. Um carro excluído ou vendido precisa sumir do site na
+        // próxima visita, não até um minuto (ou cinco, com o stale-while-
+        // revalidate que havia aqui antes) depois — "exclui no CRM e some do
+        // site" é a promessa da integração, e um CDN servindo a resposta
+        // antiga quebra exatamente essa promessa. O tráfego de um site de
+        // revenda não justifica economizar consultas ao banco às custas de
+        // mostrar um carro que não existe mais.
+        "Cache-Control": "no-store",
       },
     },
   );
