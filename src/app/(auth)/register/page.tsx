@@ -5,22 +5,32 @@ import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = {
   title: "Criar conta",
-  description: "Crie a conta da sua revenda no Mypremium CRM em menos de um minuto.",
+  description: "Ative a conta da revenda no Mypremium CRM com o código de acesso.",
 };
 
-export default function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ codigo?: string }>;
+}) {
+  // Um link com ?codigo=... já vem preenchido — o dono do sistema salva um
+  // atalho e só digita o resto a cada revenda nova, sem ter que lembrar nem
+  // repassar o código toda vez.
+  const { codigo } = await searchParams;
+
   return (
     <div className="space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-[-0.03em]">
-          Comece agora
+          Ativar conta da revenda
         </h1>
         <p className="text-muted-foreground text-sm">
-          Crie a conta da sua loja. Leva menos de um minuto e não pedimos cartão.
+          O cadastro não é público — é preciso o código de acesso fornecido
+          por quem administra o sistema.
         </p>
       </div>
 
-      <RegisterForm />
+      <RegisterForm defaultCode={codigo ?? ""} />
 
       <p className="text-muted-foreground text-center text-sm">
         Já tem conta?{" "}

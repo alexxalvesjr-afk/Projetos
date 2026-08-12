@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,16 +35,6 @@ export default function LoginPage() {
       <Suspense fallback={<LoginFormFallback />}>
         <LoginForm />
       </Suspense>
-
-      <p className="text-muted-foreground text-center text-sm">
-        Ainda não tem conta?{" "}
-        <Link
-          href="/register"
-          className="text-foreground font-medium underline-offset-4 hover:underline"
-        >
-          Criar conta grátis
-        </Link>
-      </p>
     </div>
   );
 }

@@ -31,13 +31,19 @@ const RULES = [
   { label: "Um número", test: (v: string) => /\d/.test(v) },
 ];
 
-export function RegisterForm() {
+export function RegisterForm({
+  defaultCode = "",
+}: {
+  /** Pré-preenchido a partir de `?codigo=` na URL — ver a página. */
+  defaultCode?: string;
+}) {
   const router = useRouter();
   const [formError, setFormError] = React.useState<string | null>(null);
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      code: defaultCode,
       organizationName: "",
       name: "",
       email: "",
@@ -83,12 +89,30 @@ export function RegisterForm() {
 
         <FormField
           control={form.control}
+          name="code"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Código de acesso</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Fornecido por quem vende o sistema"
+                  autoFocus={!defaultCode}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="organizationName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nome da loja</FormLabel>
               <FormControl>
-                <Input placeholder="Duarte Seminovos" autoFocus {...field} />
+                <Input placeholder="Duarte Seminovos" autoFocus={Boolean(defaultCode)} {...field} />
               </FormControl>
               <FormDescription>
                 Aparece no seu site público e nas propostas.

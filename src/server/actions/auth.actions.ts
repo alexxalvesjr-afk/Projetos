@@ -1,11 +1,12 @@
 "use server";
 
+import { timingSafeEqual } from "node:crypto";
 import { AuthError } from "next-auth";
 
 import { hashPassword, signIn } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { recordAudit } from "@/lib/audit";
-import { ConflictError } from "@/lib/errors";
+import { ConflictError, ForbiddenError } from "@/lib/errors";
 import {
   actionError,
   actionSuccess,
@@ -130,13 +131,41 @@ export async function login(raw: unknown): Promise<ActionResult<null>> {
 }
 
 /**
- * Self-service sign-up. Creates the organization and its OWNER atomically —
- * a half-created tenant with no administrator would be unrecoverable.
+ * Compara o código digitado com o segredo configurado, em tempo constante.
+ *
+ * É um portão, não uma senha de usuário: o mesmo valor vale para toda
+ * revenda nova, e só quem vende o sistema o conhece. Tempo constante porque,
+ * sendo comparado a cada tentativa de cadastro, um atacante tem quantas
+ * tentativas quiser para medir a resposta.
+ */
+function validCode(typed: string): boolean {
+  const expected = process.env.REGISTER_ACCESS_CODE?.trim();
+  // Sem a variável configurada, o cadastro fica fechado por padrão — do
+  // contrário, uma instalação nova ficaria aberta ao público até alguém
+  // lembrar de configurar isso.
+  if (!expected) return false;
+
+  const a = Buffer.from(typed);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/**
+ * Sign-up por código. Cria a organização e o seu OWNER atomicamente — um
+ * inquilino pela metade, sem administrador, seria irrecuperável.
+ *
+ * Não é mais autoatendimento público: um estranho que ache esta página não
+ * cria conta sozinho. Só quem tem o código — hoje, só quem vende o CRM —
+ * consegue dar de alta uma revenda nova.
  */
 export const register = createPublicAction({
   input: registerSchema,
   rateLimit: "register",
   async handler({ input }) {
+    if (!validCode(input.code)) {
+      throw new ForbiddenError("Código de acesso inválido.");
+    }
+
     const existing = await db.user.findUnique({
       where: { email: input.email },
       select: { id: true },

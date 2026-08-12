@@ -15,6 +15,10 @@ export const loginSchema = z.object({
  */
 export const registerSchema = z
   .object({
+    // Sem cadastro aberto: a conta de cada revenda nasce a partir de um
+    // código que só quem vende o sistema conhece. O campo vem antes das
+    // regras de negócio porque barra a tentativa antes de tocar no banco.
+    code: z.string().min(1, "Informe o código de acesso"),
     organizationName: z
       .string()
       .min(2, "Informe o nome da loja")
