@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -55,7 +54,6 @@ export default async function ProfilePage() {
         </Button>
         <PageHeader
           title="Meu perfil"
-          description="Seus dados pessoais e nível de acesso."
         />
       </div>
 
@@ -73,7 +71,6 @@ export default async function ProfilePage() {
         <Card className="h-fit">
           <CardHeader>
             <CardTitle>Conta</CardTitle>
-            <CardDescription>Informações somente leitura.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">

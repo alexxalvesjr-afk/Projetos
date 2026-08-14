@@ -108,7 +108,6 @@ export default async function CrmPage() {
     <div className="space-y-6">
       <PageHeader
         title="Clientes"
-        description="No computador, arraste os cards entre as etapas. No celular, use o botão “Mover”. Tudo fica no histórico."
       />
 
       <Suspense

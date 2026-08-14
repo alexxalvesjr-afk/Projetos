@@ -17,14 +17,12 @@ export function InvestedCard({
   investedCents,
   retailValueCents,
   expectedProfitCents,
-  pricedCount,
   inStock,
   withoutMarginCount,
 }: {
   investedCents: number;
   retailValueCents: number;
   expectedProfitCents: number;
-  pricedCount: number;
   inStock: number;
   withoutMarginCount: number;
 }) {
@@ -37,15 +35,9 @@ export function InvestedCard({
       </CardHeader>
 
       <CardContent className="space-y-5">
-        <div>
-          <p className="tabular text-[30px] leading-none font-semibold tracking-[-0.03em]">
-            {formatCurrencyShort(investedCents)}
-          </p>
-          <p className="text-muted-foreground mt-1.5 text-sm">
-            investidos {pricedCount === 1 ? "no" : "nos"} {pricedCount}{" "}
-            {pricedCount === 1 ? "carro" : "carros"} com custo definido
-          </p>
-        </div>
+        <p className="tabular text-[30px] leading-none font-semibold tracking-[-0.03em]">
+          {formatCurrencyShort(investedCents)}
+        </p>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

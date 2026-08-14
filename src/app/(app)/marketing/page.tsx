@@ -344,7 +344,6 @@ export default async function MarketingPage({
     <div className="space-y-6">
       <PageHeader
         title="Marketing"
-        description="Quanto cada canal custa, quantos leads entrega e o retorno real em vendas."
       />
 
       <Suspense

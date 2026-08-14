@@ -31,7 +31,6 @@ export default async function SettingsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Configurações"
-        description="Dados da empresa, identidade visual e canais de contato."
       >
         <Button asChild variant="outline">
           <Link href="/settings/profile">

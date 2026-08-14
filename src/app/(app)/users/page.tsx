@@ -214,10 +214,6 @@ async function Team() {
           <Card>
             <CardHeader>
               <CardTitle>Registro de atividades</CardTitle>
-              <CardDescription>
-                Todas as ações relevantes ficam registradas com autor, IP e
-                horário.
-              </CardDescription>
             </CardHeader>
             <CardContent>
               {auditLogs.length === 0 ? (
@@ -279,7 +275,6 @@ export default async function UsersPage() {
     <div className="space-y-6">
       <PageHeader
         title="Equipe"
-        description="Quem tem acesso, o que cada função pode fazer e o histórico de ações."
       >
         {hasPermission(user.role, "user:create") ? (
           <UserDialog actorRole={user.role} />

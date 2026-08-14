@@ -257,9 +257,6 @@ export default async function VehicleDetailPage({
           <Card>
             <CardHeader>
               <CardTitle>Despesas</CardTitle>
-              <CardDescription>
-                Preparação, documentação e transporte.
-              </CardDescription>
             </CardHeader>
             <CardContent>
               {vehicle.expenses.length === 0 ? (

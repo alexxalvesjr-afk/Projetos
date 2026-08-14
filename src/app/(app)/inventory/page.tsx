@@ -201,7 +201,6 @@ export default async function InventoryPage({
     <div className="space-y-6">
       <PageHeader
         title="Estoque"
-        description="Os veículos da loja como aparecem no site. Margem e giro ficam na visão em tabela."
       >
         {hasPermission(user.role, "vehicle:create") ? (
           <Button asChild>

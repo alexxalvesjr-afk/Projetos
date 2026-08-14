@@ -108,24 +108,15 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
       {/* Visão de vendas --------------------------------------------------- */}
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold tracking-[-0.02em]">
-              Visão de vendas
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              Acompanhe o que foi fechado no período.
-            </p>
-          </div>
+          <h2 className="text-xl font-semibold tracking-[-0.02em]">
+            Visão de vendas
+          </h2>
           <Button asChild variant="outline" size="sm">
             <Link href="/reports">Relatórios</Link>
           </Button>
         </div>
 
         <PeriodFilter active={periodKey} label={periodLabel(periodKey)} />
-
-        <p className="text-muted-foreground text-xs">
-          Os três números abaixo mudam conforme o período escolhido acima.
-        </p>
 
         <div className="grid gap-4 md:grid-cols-3">
           {showFinancials ? (
@@ -172,14 +163,9 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
 
       {/* Sua loja agora ---------------------------------------------------- */}
       <section className="space-y-4">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className="text-xl font-semibold tracking-[-0.02em]">
-            Sua loja agora
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            foto do momento · não muda com o período
-          </p>
-        </div>
+        <h2 className="text-xl font-semibold tracking-[-0.02em]">
+          Sua loja agora
+        </h2>
 
         <div className="grid gap-4 lg:grid-cols-2">
           {showFinancials ? (
@@ -187,7 +173,6 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
               investedCents={stock.investedCents}
               retailValueCents={stock.retailValueCents}
               expectedProfitCents={stock.expectedProfitCents}
-              pricedCount={stock.pricedCount}
               inStock={stock.inStock}
               withoutMarginCount={stock.withoutMarginCount}
             />
@@ -212,12 +197,9 @@ async function DashboardContent({ periodKey }: { periodKey: PeriodKey }) {
           and a page of their own under /reports; what this position answers is
           the simpler question of which months actually moved cars. */}
       <section className="space-y-4">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className="text-xl font-semibold tracking-[-0.02em]">
-            Tendência do ano
-          </h2>
-          <p className="text-muted-foreground text-sm">vendas mês a mês</p>
-        </div>
+        <h2 className="text-xl font-semibold tracking-[-0.02em]">
+          Tendência do ano
+        </h2>
 
         <Card>
           <CardHeader>
@@ -311,7 +293,6 @@ export default async function DashboardPage({
           month: "long",
         }).format(new Date())}
         title={`${greeting}, ${firstName}`}
-        description="Este é o retrato da sua operação hoje."
       >
         <Button asChild variant="outline">
           <Link href="/reports">Relatórios</Link>

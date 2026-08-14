@@ -336,7 +336,6 @@ export default async function ReportsPage() {
     <div className="space-y-6 print:space-y-4">
       <PageHeader
         title="Relatórios"
-        description="Faturamento, margem, conversão e giro de estoque em um só lugar."
       >
         {hasPermission(user.role, "report:export") ? <ExportMenu /> : null}
       </PageHeader>

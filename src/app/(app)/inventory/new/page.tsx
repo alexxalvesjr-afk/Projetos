@@ -28,7 +28,6 @@ export default async function NewVehiclePage() {
       <PageHeader
         eyebrow="Estoque"
         title="Novo veículo"
-        description="Preencha os dados. O anúncio vai ao ar no site assim que você salvar."
       />
 
       <VehicleForm sellers={sellers} />

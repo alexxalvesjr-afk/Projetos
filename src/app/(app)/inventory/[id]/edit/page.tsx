@@ -90,7 +90,6 @@ export default async function EditVehiclePage({
       <PageHeader
         eyebrow="Estoque"
         title={`Editar ${vehicleTitle(vehicle)}`}
-        description="As alterações refletem no site imediatamente após salvar."
       />
 
       <VehicleForm

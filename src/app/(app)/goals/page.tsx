@@ -302,9 +302,6 @@ async function Goals() {
       <Card>
         <CardHeader>
           <CardTitle>Conquistas recentes</CardTitle>
-          <CardDescription>
-            Marcos alcançados pela equipe.
-          </CardDescription>
         </CardHeader>
         <CardContent>
           {achievements.length === 0 ? (
@@ -357,7 +354,6 @@ export default async function GoalsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Metas e ranking"
-        description="Acompanhe o atingimento da loja e o desempenho individual da equipe."
       />
 
       <Suspense

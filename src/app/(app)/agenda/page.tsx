@@ -97,7 +97,6 @@ export default async function AgendaPage() {
     <div className="space-y-6">
       <PageHeader
         title="Agenda"
-        description="Clique em um dia para ver os compromissos; duplo clique para agendar."
       />
 
       <Suspense fallback={<Skeleton className="h-[36rem] w-full rounded-xl" />}>
