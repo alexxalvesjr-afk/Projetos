@@ -1,22 +1,48 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { UserRound } from "lucide-react";
+import { ArrowRight, UserRound } from "lucide-react";
 
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/session";
 import { hasPermission } from "@/lib/rbac";
+import { formatPhone } from "@/lib/format";
+import { dealerSiteUrl } from "@/lib/dealer-site";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { OrganizationForm } from "@/components/settings/organization-form";
-import { dealerSiteUrl } from "@/lib/dealer-site";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { UserDialog } from "@/components/users/user-dialog";
 
 export const metadata: Metadata = {
   title: "Configurações",
-  description: "Dados da empresa, marca e integrações.",
+  description: "Dados da empresa e contas de acesso.",
 };
 
+/** Uma linha do resumo. Campo vazio vira "—", nunca um espaço em branco. */
+function Row({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b py-2.5 last:border-b-0">
+      <dt className="text-muted-foreground text-sm">{label}</dt>
+      <dd className="truncate text-right text-sm font-medium">
+        {value?.trim() ? value : "—"}
+      </dd>
+    </div>
+  );
+}
+
+/**
+ * Configurações da loja — somente leitura.
+ *
+ * Os dados da empresa são acertados na contratação e não mudam pelo painel,
+ * então a tela mostra o que está valendo em vez de oferecer um formulário que
+ * o servidor recusaria de qualquer forma. O que sobra de acionável aqui é o
+ * que o dono realmente precisa: criar os acessos da equipe.
+ */
 export default async function SettingsPage() {
   const user = await requirePermission("settings:view");
 
@@ -25,13 +51,18 @@ export default async function SettingsPage() {
   });
   if (!organization) notFound();
 
-  const canEdit = hasPermission(user.role, "settings:update");
+  const canInvite = hasPermission(user.role, "user:create");
+  const endereco = [
+    organization.addressLine,
+    organization.city,
+    organization.state,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Configurações"
-      >
+      <PageHeader title="Configurações">
         <Button asChild variant="outline">
           <Link href="/settings/profile">
             <UserRound />
@@ -40,40 +71,50 @@ export default async function SettingsPage() {
         </Button>
       </PageHeader>
 
-      {!canEdit ? (
-        <Alert variant="info">
-          <AlertDescription>
-            Você tem acesso de leitura a estas configurações. Peça a um
-            administrador para alterá-las.
-          </AlertDescription>
-        </Alert>
-      ) : null}
+      {/* Contas de acesso vem primeiro: é a única ação da tela. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Contas de acesso</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-muted-foreground text-sm">
+            Crie o acesso de gerente, balcão e vendedores.
+          </p>
 
-      {/* A read-only role sees the same layout with inputs disabled by the
-          server action, which will reject the mutation anyway. */}
-      <fieldset disabled={!canEdit} className="contents">
-        <OrganizationForm
-          storeUrl={dealerSiteUrl()}
-          defaults={{
-            name: organization.name,
-            legalName: organization.legalName ?? "",
-            taxId: organization.taxId ?? "",
-            email: organization.email ?? "",
-            phone: organization.phone ?? "",
-            whatsapp: organization.whatsapp ?? "",
-            addressLine: organization.addressLine ?? "",
-            city: organization.city ?? "",
-            state: organization.state ?? "",
-            postalCode: organization.postalCode ?? "",
-            logoUrl: organization.logoUrl ?? "",
-            brandColor: organization.brandColor,
-            instagramUrl: organization.instagramUrl ?? "",
-            facebookUrl: organization.facebookUrl ?? "",
-            youtubeUrl: organization.youtubeUrl ?? "",
-            tiktokUrl: organization.tiktokUrl ?? "",
-          }}
-        />
-      </fieldset>
+          <div className="flex flex-wrap items-center gap-2">
+            {canInvite ? <UserDialog actorRole={user.role} /> : null}
+            <Button asChild variant="outline">
+              <Link href="/users">
+                Ver equipe
+                <ArrowRight />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Dados da loja</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl>
+            <Row label="Nome" value={organization.name} />
+            <Row label="Razão social" value={organization.legalName} />
+            <Row label="CNPJ" value={organization.taxId} />
+            <Row label="E-mail" value={organization.email} />
+            <Row label="Telefone" value={formatPhone(organization.phone)} />
+            <Row label="WhatsApp" value={formatPhone(organization.whatsapp)} />
+            <Row label="Endereço" value={endereco} />
+            <Row label="Site" value={dealerSiteUrl().replace(/^https?:\/\//, "")} />
+          </dl>
+
+          <p className="text-muted-foreground mt-4 text-sm">
+            Para alterar qualquer um destes dados, fale com quem administra o
+            sistema.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -100,12 +100,29 @@ const ADMIN_PERMISSIONS: Permission[] = [
   "user:create",
   "user:update",
   "user:delete",
-  "settings:update",
   "audit:view",
 ];
 
+/**
+ * `settings:update` de propósito não pertence a nenhum papel.
+ *
+ * O CRM é vendido pronto: quem contrata recebe a loja já configurada e usa o
+ * sistema para vender carros e dar acesso à equipe, não para reconfigurar a
+ * própria instalação. Nome da loja, logo e contatos são acertados na venda —
+ * inclusive o WhatsApp, de que o site depende para montar o botão de contato
+ * em cada carro, e que um número trocado por engano deixaria de funcionar sem
+ * aviso.
+ *
+ * A permissão continua no catálogo, e não apagada, porque a decisão é
+ * comercial e reversível — e porque `updateOrganization` segue existindo,
+ * validado e auditado, como o caminho por onde esses dados são alterados.
+ * Voltar a editar pelo painel exige devolver a permissão a OWNER *e* refazer
+ * o formulário, que saiu junto: sem ele, a tela de Ajustes é só leitura.
+ */
 export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
-  OWNER: PERMISSIONS,
+  // OWNER e ADMIN partilham a lista: o que separa os dois é quem pode
+  // promover quem (ver `canAssignRole`), não o que cada um enxerga.
+  OWNER: ADMIN_PERMISSIONS,
   ADMIN: ADMIN_PERMISSIONS,
   MANAGER: MANAGER_PERMISSIONS,
   SALESPERSON: SALESPERSON_PERMISSIONS,
