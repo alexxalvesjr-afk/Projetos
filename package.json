@@ -1,8 +1,8 @@
 {
-  "name": "revend-crm",
+  "name": "duboss-crm",
   "version": "1.0.0",
   "private": true,
-  "description": "Revend CRM — the operating system for modern dealerships.",
+  "description": "Duboss CRM — the operating system for Duboss Motors.",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

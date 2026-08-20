@@ -1,8 +1,14 @@
+import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 /**
- * Wordmark. The glyph is an abstracted "R" cut from a speedometer arc — drawn
- * inline as SVG so it stays crisp, themeable and free of a network request.
+ * Wordmark. The glyph is a "D" cut from a gold plate — drawn inline as SVG so
+ * it stays crisp, themeable and free of a network request.
+ *
+ * The counter is punched with `evenodd` rather than painted over, so the mark
+ * survives on any background instead of only on the one it was designed for.
+ * The letter takes `--primary-foreground`, never white: gold is a light hue
+ * and white on it is unreadable.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -13,18 +19,24 @@ export function LogoMark({ className }: { className?: string }) {
       aria-hidden
     >
       <defs>
-        <linearGradient id="revend-mark" x1="0" y1="0" x2="32" y2="32">
-          <stop offset="0%" stopColor="var(--primary)" />
+        <linearGradient id="duboss-mark" x1="0" y1="0" x2="32" y2="32">
+          <stop
+            offset="0%"
+            stopColor="color-mix(in oklch, var(--primary) 82%, white)"
+          />
+          <stop offset="55%" stopColor="var(--primary)" />
           <stop
             offset="100%"
-            stopColor="color-mix(in oklch, var(--primary) 55%, var(--chart-6))"
+            stopColor="color-mix(in oklch, var(--primary) 72%, oklch(0.42 0.08 58))"
           />
         </linearGradient>
       </defs>
-      <rect width="32" height="32" rx="9" fill="url(#revend-mark)" />
+      <rect width="32" height="32" rx="9" fill="url(#duboss-mark)" />
       <path
-        d="M11 22V10.5h6.2a3.9 3.9 0 0 1 1.2 7.6L21.4 22h-3.6l-2.5-3.6h-1.1V22H11Zm3.2-6.1h2.6a1.6 1.6 0 0 0 0-3.2h-2.6v3.2Z"
-        fill="white"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M10.6 9.4h5.6a6.6 6.6 0 0 1 0 13.2h-5.6V9.4Zm3.4 3.3v6.6h2.2a3.3 3.3 0 0 0 0-6.6h-2.2Z"
+        fill="var(--primary-foreground)"
       />
     </svg>
   );
@@ -42,7 +54,7 @@ export function Logo({
       <LogoMark />
       {showWordmark ? (
         <span className="text-[17px] font-semibold tracking-[-0.03em]">
-          Revend
+          {BRAND.name}
         </span>
       ) : null}
     </span>

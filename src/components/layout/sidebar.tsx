@@ -33,13 +33,13 @@ export function Sidebar({
 
   // Persist the preference so the shell feels stable between sessions.
   React.useEffect(() => {
-    const stored = window.localStorage.getItem("revend:sidebar-collapsed");
+    const stored = window.localStorage.getItem("duboss:sidebar-collapsed");
     if (stored === "1") setCollapsed(true);
   }, []);
 
   const toggle = React.useCallback(() => {
     setCollapsed((prev) => {
-      window.localStorage.setItem("revend:sidebar-collapsed", prev ? "0" : "1");
+      window.localStorage.setItem("duboss:sidebar-collapsed", prev ? "0" : "1");
       return !prev;
     });
   }, []);

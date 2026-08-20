@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { BRAND } from "@/lib/brand";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
   title: "Entrar",
-  description: "Acesse o painel da sua revenda no Revend CRM.",
+  description: `Acesse o painel da ${BRAND.company} no ${BRAND.product}.`,
 };
 
 /** Matches the form's geometry so nothing shifts when it hydrates. */

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Facebook, Instagram, MapPin, MessageCircle, Phone, Youtube } from "lucide-react";
 
+import { BRAND } from "@/lib/brand";
 import { db } from "@/lib/db";
 import { whatsappLink } from "@/lib/utils";
 import { formatPhone } from "@/lib/format";
@@ -196,7 +197,7 @@ export default async function StoreLayout({
             <p>
               Feito com{" "}
               <Link href="/" className="text-foreground font-medium hover:underline">
-                Revend CRM
+                {BRAND.product}
               </Link>
             </p>
           </div>

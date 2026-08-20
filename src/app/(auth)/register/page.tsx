@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BRAND } from "@/lib/brand";
 import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = {
   title: "Criar conta",
-  description: "Crie a conta da sua revenda no Revend CRM em menos de um minuto.",
+  description: `Crie a conta da sua revenda no ${BRAND.product} em menos de um minuto.`,
 };
 
 export default function RegisterPage() {

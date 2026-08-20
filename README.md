@@ -1,6 +1,6 @@
-# Revend CRM
+# Duboss CRM
 
-The operating system for a used-car dealership. Inventory, sales pipeline,
+The operating system for Duboss Motors — premium vehicles and boats. Inventory, sales pipeline,
 agenda, targets, marketing attribution and a public storefront — one system,
 one source of truth.
 
@@ -29,15 +29,15 @@ npm run dev                 # http://localhost:3000
 
 The seed creates a fully populated dealership (34 vehicles, 72 leads, 12 sales,
 5 campaigns with 120 days of metrics). Password for all accounts:
-**`Revend@2026`**
+**`Duboss@2026`**
 
 | Role | E-mail | What they see |
 |---|---|---|
-| Proprietário | `owner@revend.com` | Everything |
-| Administrador | `admin@revend.com` | All modules + user management + audit log |
-| Gerente | `gerente@revend.com` | Stock, pipeline, targets, marketing, CMS |
-| Vendedor | `thiago@revend.com` | Own pipeline only; no costs or margins |
-| Visualizador | `financeiro@revend.com` | Read-only |
+| Proprietário | `owner@dubossmotors.com.br` | Everything |
+| Administrador | `admin@dubossmotors.com.br` | All modules + user management + audit log |
+| Gerente | `gerente@dubossmotors.com.br` | Stock, pipeline, targets, marketing, CMS |
+| Vendedor | `thiago@dubossmotors.com.br` | Own pipeline only; no costs or margins |
+| Visualizador | `financeiro@dubossmotors.com.br` | Read-only |
 
 Sign in as the salesperson and then the owner — the difference in what each one
 can see is the clearest demonstration of the permission model.
@@ -120,7 +120,7 @@ removes it from the site and the sitemap in the same request.
 were run through a six-check validator — lightness band, chroma floor,
 adjacent-pair separation under protanopia/deuteranopia/tritanopia, a
 normal-vision floor, and contrast against their own surface — and re-stepped
-until every check passed. Re-validate before changing any `--chart-*` token.
+until every check passed. Re-validate before changing any `--chart-*` token. Gold is the brand series (`--chart-1`), so the amber step was retired for blue — amber next to gold was the one pair separation could not resolve.
 
 ---
 
@@ -172,6 +172,13 @@ uploads set `UPLOADTHING_TOKEN` and `NEXT_PUBLIC_UPLOADTHING_ENABLED="true"`.
 JWT module augmentation in `src/types/next-auth.d.ts` merges into the interface
 `next-auth` actually uses. With two copies hoisted, every session claim silently
 degrades to `unknown`.
+
+**Branding lives in two files.** `src/lib/brand.ts` holds every name, slogan
+and legal string; `src/app/globals.css` holds the OKLCH palette. Nothing else
+hardcodes the brand, so a rebrand is those two files plus the mark in
+`src/components/shared/logo.tsx`. Note that gold is a light hue —
+`--primary-foreground` is near-black, not white, and the logo glyph reads from
+that token rather than a literal `white`.
 
 **Typography** uses a system font stack (SF Pro / Segoe UI Variable / Inter),
 which costs no network request and renders natively. Swap in `next/font` if you

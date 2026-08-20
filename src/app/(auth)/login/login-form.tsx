@@ -24,9 +24,9 @@ import {
 
 /** Demo credentials shown in non-production builds to make review painless. */
 const DEMO_ACCOUNTS = [
-  { label: "Proprietária", email: "owner@revend.com" },
-  { label: "Gerente", email: "gerente@revend.com" },
-  { label: "Vendedor", email: "thiago@revend.com" },
+  { label: "Proprietária", email: "owner@dubossmotors.com.br" },
+  { label: "Gerente", email: "gerente@dubossmotors.com.br" },
+  { label: "Vendedor", email: "thiago@dubossmotors.com.br" },
 ];
 
 export function LoginForm() {
@@ -65,7 +65,7 @@ export function LoginForm() {
 
   function fillDemo(email: string) {
     form.setValue("email", email);
-    form.setValue("password", "Revend@2026");
+    form.setValue("password", "Duboss@2026");
     setFormError(null);
   }
 

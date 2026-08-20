@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Revend CRM — data model
+// Duboss CRM — data model
 //
 // Conventions used throughout:
 //  * Every tenant-owned row carries `organizationId` and is indexed on it.

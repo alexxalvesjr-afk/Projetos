@@ -4,9 +4,17 @@
 @import "tw-animate-css";
 
 /* ---------------------------------------------------------------------------
-   Revend Design System
-   A calm, high-contrast, depth-aware system. Colour is expressed in OKLCH so
-   that light/dark pairs stay perceptually balanced instead of merely inverted.
+   Duboss Design System
+   Graphite and gold. Colour is expressed in OKLCH so that light/dark pairs
+   stay perceptually balanced instead of merely inverted.
+
+   Gold is a light hue: it can never carry white text. Every gold surface
+   pairs with a near-black `--primary-foreground`, which is why the foreground
+   token flips rather than staying white as it did on violet. The light step
+   sits at L 0.76 rather than a richer 0.735 for exactly that reason —
+   darkening the gold *lowers* its contrast against black, so the step was
+   raised until button text cleared 4.5:1 (it measures 4.72:1) while the
+   plate still cleared 3:1 against the page (4.22:1).
 --------------------------------------------------------------------------- */
 
 @custom-variant dark (&:is(.dark *));
@@ -15,17 +23,17 @@
   --radius: 0.75rem;
 
   /* Surfaces ------------------------------------------------------------- */
-  --background: oklch(0.994 0.002 264);
-  --foreground: oklch(0.21 0.014 265);
+  --background: oklch(0.993 0.003 95);
+  --foreground: oklch(0.205 0.01 90);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.21 0.014 265);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.21 0.014 265);
 
   /* Brand ---------------------------------------------------------------- */
-  --primary: oklch(0.545 0.216 277);
-  --primary-foreground: oklch(0.99 0.002 264);
-  --primary-muted: oklch(0.95 0.03 277);
+  --primary: oklch(0.76 0.132 82);
+  --primary-foreground: oklch(0.17 0.02 82);
+  --primary-muted: oklch(0.955 0.035 85);
 
   /* Neutrals ------------------------------------------------------------- */
   --secondary: oklch(0.968 0.004 265);
@@ -48,7 +56,7 @@
   /* Lines & focus -------------------------------------------------------- */
   --border: oklch(0.918 0.006 265);
   --input: oklch(0.918 0.006 265);
-  --ring: oklch(0.545 0.216 277);
+  --ring: oklch(0.66 0.13 82);
 
   /* Sidebar shell -------------------------------------------------------- */
   --sidebar: oklch(0.982 0.003 265);
@@ -66,31 +74,33 @@
      through a six-check validator (lightness band, chroma floor, adjacent-pair
      separation under protanopia/deuteranopia/tritanopia, normal-vision floor
      and contrast against their own surface) and re-stepped until every check
-     passed. Chart-2/3/5 sit under 3:1 against the light surface, which is why
+     passed. Gold is now the brand series, so the old amber step was retired
+     for blue — amber beside gold is the one pair the separation check could
+     not resolve. Chart-1/3/5 sit under 3:1 against the light surface, which is why
      every chart ships axis labels, a legend and tooltips rather than relying
      on colour alone. Re-validate before changing any value. */
-  --chart-1: oklch(0.545 0.216 277); /* violet — brand / primary series */
-  --chart-2: oklch(0.755 0.16 75);   /* amber */
+  --chart-1: oklch(0.76 0.132 82);   /* gold — brand / primary series */
+  --chart-2: oklch(0.55 0.14 250);   /* blue */
   --chart-3: oklch(0.66 0.15 195);   /* teal */
   --chart-4: oklch(0.6 0.2 330);     /* magenta */
   --chart-5: oklch(0.74 0.17 145);   /* green */
   --chart-6: oklch(0.585 0.21 25);   /* red */
 
   /* Elevation ------------------------------------------------------------ */
-  --shadow-color: 220 40% 12%;
+  --shadow-color: 40 25% 10%;
 }
 
 .dark {
-  --background: oklch(0.155 0.009 266);
+  --background: oklch(0.148 0.005 90);
   --foreground: oklch(0.955 0.005 264);
-  --card: oklch(0.192 0.011 266);
+  --card: oklch(0.186 0.006 90);
   --card-foreground: oklch(0.955 0.005 264);
-  --popover: oklch(0.203 0.012 266);
+  --popover: oklch(0.198 0.007 90);
   --popover-foreground: oklch(0.955 0.005 264);
 
-  --primary: oklch(0.672 0.185 277);
-  --primary-foreground: oklch(0.145 0.02 277);
-  --primary-muted: oklch(0.28 0.07 277);
+  --primary: oklch(0.795 0.132 85);
+  --primary-foreground: oklch(0.17 0.025 85);
+  --primary-muted: oklch(0.3 0.055 85);
 
   --secondary: oklch(0.248 0.013 266);
   --secondary-foreground: oklch(0.94 0.005 264);
@@ -110,9 +120,9 @@
 
   --border: oklch(0.288 0.014 266);
   --input: oklch(0.31 0.015 266);
-  --ring: oklch(0.672 0.185 277);
+  --ring: oklch(0.795 0.132 85);
 
-  --sidebar: oklch(0.176 0.01 266);
+  --sidebar: oklch(0.17 0.006 90);
   --sidebar-foreground: oklch(0.8 0.01 265);
   --sidebar-accent: oklch(0.258 0.014 266);
   --sidebar-accent-foreground: oklch(0.97 0.005 264);
@@ -120,14 +130,14 @@
 
   /* Dark steps are selected against the dark surface and validated
      independently — not a mechanical inversion of the light set. */
-  --chart-1: oklch(0.63 0.19 277);
-  --chart-2: oklch(0.665 0.155 75);
+  --chart-1: oklch(0.795 0.132 85);
+  --chart-2: oklch(0.635 0.15 250);
   --chart-3: oklch(0.575 0.14 195);
   --chart-4: oklch(0.665 0.19 330);
   --chart-5: oklch(0.655 0.17 145);
   --chart-6: oklch(0.555 0.195 25);
 
-  --shadow-color: 260 60% 2%;
+  --shadow-color: 40 45% 2%;
 }
 
 @theme inline {

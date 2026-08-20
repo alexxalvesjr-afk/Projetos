@@ -12,6 +12,7 @@ import {
   Target,
 } from "lucide-react";
 
+import { BRAND } from "@/lib/brand";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,9 +20,9 @@ import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export const metadata: Metadata = {
-  title: "Revend CRM — o sistema operacional da sua revenda",
+  title: `${BRAND.product} — ${BRAND.tagline}`,
   description:
-    "Estoque, funil de vendas, metas, marketing e site publicados a partir de um só lugar. Feito para revendas de veículos que querem crescer com previsibilidade.",
+    "Estoque, funil de vendas, metas, marketing e site publicados a partir de um só lugar. Feito para a operação de veículos premium e embarcações da Duboss Motors.",
 };
 
 export const revalidate = 3600;
@@ -247,8 +248,7 @@ export default async function LandingPage() {
         <div className="text-muted-foreground mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-8 text-sm sm:px-6">
           <Logo />
           <p className="text-xs">
-            © {new Date().getFullYear()} Revend. Feito para quem vive de girar
-            estoque.
+            © {new Date().getFullYear()} {BRAND.company}. {BRAND.footer}
           </p>
         </div>
       </footer>

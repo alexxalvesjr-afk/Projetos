@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
+import { BRAND } from "@/lib/brand";
 import { Providers } from "@/components/providers";
 
 import "./globals.css";
@@ -9,11 +10,11 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "Revend CRM — o sistema operacional da sua revenda",
-    template: "%s · Revend CRM",
+    default: `${BRAND.product} — ${BRAND.tagline}`,
+    template: `%s · ${BRAND.product}`,
   },
   description:
-    "Estoque, funil de vendas, metas e marketing em um só lugar. O CRM feito para revendas de veículos que querem crescer com previsibilidade.",
+    "Estoque, funil de vendas, metas e marketing em um só lugar. O sistema que roda o dia a dia da Duboss Motors — veículos premium e embarcações.",
   keywords: [
     "CRM automotivo",
     "gestão de revenda",
@@ -21,20 +22,20 @@ export const metadata: Metadata = {
     "estoque de veículos",
     "funil de vendas automotivo",
   ],
-  authors: [{ name: "Revend" }],
+  authors: [{ name: BRAND.company }],
   openGraph: {
     type: "website",
     locale: "pt_BR",
     url: appUrl,
-    siteName: "Revend CRM",
-    title: "Revend CRM — o sistema operacional da sua revenda",
+    siteName: BRAND.product,
+    title: `${BRAND.product} — ${BRAND.tagline}`,
     description:
       "Estoque, funil de vendas, metas e marketing em um só lugar.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Revend CRM",
-    description: "O sistema operacional da sua revenda de veículos.",
+    title: BRAND.product,
+    description: `O sistema operacional da ${BRAND.company}.`,
   },
   robots: {
     index: true,

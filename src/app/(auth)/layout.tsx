@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Quote, ShieldCheck, TrendingUp, Zap } from "lucide-react";
 
+import { BRAND } from "@/lib/brand";
 import { Logo } from "@/components/shared/logo";
 
 const HIGHLIGHTS = [
@@ -42,8 +43,7 @@ export default function AuthLayout({
         </div>
 
         <p className="text-muted-foreground text-center text-xs">
-          © {new Date().getFullYear()} Revend · Feito para quem vive de girar
-          estoque.
+          © {new Date().getFullYear()} {BRAND.company} · {BRAND.footer}
         </p>
       </div>
 
@@ -96,7 +96,7 @@ export default function AuthLayout({
             <figcaption className="text-muted-foreground text-xs">
               <span className="text-foreground font-medium">Marina Duarte</span>
               {" · "}
-              Sócia-fundadora, Revend Motors
+              Sócia-fundadora, {BRAND.company}
             </figcaption>
           </figure>
         </div>
